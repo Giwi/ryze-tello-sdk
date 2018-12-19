@@ -1,0 +1,10 @@
+{
+  "name": "ryze-tello-sdk",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node .src//index.js"
+  },
+  "dependencies": {
+  }
+}
