@@ -1,270 +1,283 @@
+'use strict';
 const dgram = require('dgram');
-const http = require('http');
-const fs = require('fs');
-const url = require('url');
+const EventEmitter = require('events');
+const PORT = 8889;
+const HOST = '192.168.10.1';
+const PORT2 = 8890;
+const HOST2 = '0.0.0.0';
+const localPort = 50602;
 
-function Tello() {
-    const localPort = 50602;
-    const blockCmd = ['emergency', 'rc'];
-    const notBlockCmd = [];
-    const PORT = 8889;
-    const HOST = '192.168.10.1';
-    const PORT2 = 8890;
-    const HOST2 = '0.0.0.0';
-    let order = [];
-    const osdData = {};
-    let lock = false;
-    let client;
-    let server;
+/**
+ *
+ */
+class Tello {
+    /**
+     *
+     */
+    constructor() {
+        this.myEmitter = new EventEmitter();
+        this.osdData = {};
+        this.deviceIP = HOST;
+        this.client = undefined;
+        this.server = undefined;
+    }
 
-    function listenState() {
-        server.on('message', function (msg, rinfo) {
+    /**
+     *
+     */
+    mock() {
+        this.deviceIP = '127.0.0.1';
+    }
+
+    /**
+     *
+     */
+    listenState() {
+        this.server.on('message', msg => {
             msg = msg.toString().trim();
-            // console.log('Received 8890', msg)
             const fieldList = msg.split(';');
-            fieldList.forEach(function (field) {
+            fieldList.forEach(field => {
                 const fields = field.split(':');
-                osdData[fields[0]] = fields[1];
-            })
-            console.log('fieldList', fieldList)
-            console.log('osdData', osdData)
+                this.osdData[fields[0]] = fields[1];
+            });
+            /*     console.log('fieldList', fieldList)
+                 console.log('osdData', osdData)*/
         });
 
-        server.on('listening', function () {
-            var address = server.address();
+        this.server.on('listening', () => {
+            const address = this.server.address();
             console.log('server listening', address.address, address.port);
         });
-
-        server.bind(PORT2, HOST2);
-    }
-
-    function sendMethod(cmd) {
-        const message = new Buffer(cmd);
-        console.log('send:', cmd);
-        /* client.send(message, 0, message.length, PORT, HOST, function (err, bytes) {
-             if (err) {
-                 console.log('Error', err);
-                 throw err;
-             }
-         });*/
-    }
-
-    function sendCmd(cmd) {
-        if (notBlockCmd.indexOf(cmd) >= 0) {
-            return
-        }
-        if (blockCmd.indexOf(cmd) >= 0) {
-            sendMethod(cmd);
-            order = [];
-            return false;
-        }
-        order.push(cmd);
-        !lock && carryCMD();
-    }
-
-    function carryCMD() {
-        lock = true;
-        if (order.length) {
-            sendMethod(order[0])
-        } else {
-            lock = false
-        }
+        this.server.bind(PORT2, HOST2);
     }
 
     /**
      *
-     * @return {Tello}
+     * @param cmd
+     * @return {Promise<any>}
      */
-    this.start = function () {
-        client = dgram.createSocket('udp4');
-        server = dgram.createSocket('udp4');
-        client.bind(localPort);
-        process.on('SIGINT', function () {
-            stop();
-        });
-        listenState();
-
-        client.on('message', function (msg, info) {
-            if (msg.toString() === 'ok') {
-                console.log('Data received from server : ' + msg.toString());
-                console.log('Received %d bytes from %s:%d\n', msg.length, info.address, info.port);
-                if (order.length) {
-                    order = order.splice(1)
+    sendMethod(cmd) {
+        return new Promise(((resolve, reject) => {
+            const message = new Buffer(cmd);
+            console.log('send:', cmd);
+            this.client.send(message, 0, message.length, PORT, this.deviceIP, err => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve()
                 }
-                carryCMD();
-            } else {
-                console.log('not ok', msg.toString());
-                order = [];
-                lock = false
-            }
+            });
+        }));
+    }
+
+    /**
+     *
+     * @param cmd
+     * @return {Promise<any>}
+     */
+    sendCmd(cmd) {
+        return new Promise(((resolve, reject) => {
+            this.sendMethod(cmd).then(() => {
+                this.myEmitter.on('status', () => {
+                    resolve(this);
+                });
+            }).catch(err => {
+                reject(err);
+            });
+        }));
+    }
+
+    /**
+     *
+     * @return {Promise<any>}
+     */
+    emergencyStop() {
+        return this.sendCmd('emergency');
+    }
+
+    /**
+     *
+     * @return {Promise<any>}
+     */
+    takeoff() {
+        return new Promise(resolve => {
+            this.sendCmd('command')
+                .then(() => this.sendCmd('takeoff')
+                    .then(() => {
+                        resolve(this);
+                    })
+                )
         });
-        return this;
-    };
+    }
 
+    /**
+     *
+     * @param x1
+     * @param y1
+     * @param z1
+     * @param x2
+     * @param y2
+     * @param z2
+     * @param speed
+     * @return {Promise<any>}
+     */
+    curve(x1 = 20, y1 = 20, z1 = 20, x2 = 60, y2 = 40, z2 = 0, speed = 60) {
+        return this.sendCmd('curve ' + x1 + ' ' + y1 + ' ' + z1 + ' ' + x2 + ' ' + y2 + ' ' + z2 + ' ' + speed + ' ');
+    }
 
-    this.stop = function () {
-        order = [];
-        client.close();
-        server.close();
+    /**
+     *
+     * @param distance
+     * @return {Promise<any>}
+     */
+    forward(distance = 50) {
+        return this.sendCmd('forward ' + distance);
+    }
+
+    /**
+     *
+     * @return {Promise<any>}
+     */
+    start() {
+        return new Promise(resolve => {
+            this.client = dgram.createSocket('udp4');
+            this.server = dgram.createSocket('udp4');
+            this.client.bind(localPort, '0.0.0.0', () => {
+                console.log('connected');
+                resolve(this);
+            });
+            process.on('SIGINT', () => {
+                this.stop();
+            });
+            this.client.on('message', msg => {
+                if (msg.toString() === 'ok') {
+                    console.log('Data received from server : ' + msg.toString());
+                } else {
+                    console.error('not ok', msg);
+                }
+                this.myEmitter.emit('status');
+            });
+            this.listenState();
+        });
+    }
+
+    /**
+     *
+     * @param distance
+     * @return {Promise<any>}
+     */
+    right(distance = 50) {
+        return this.sendCmd('right ' + distance);
+    }
+
+    /**
+     *
+     * @param height
+     * @return {Promise<any>}
+     */
+    down(height = 50) {
+        return this.sendCmd('down ' + height);
+    }
+
+    /**
+     *
+     * @param speed
+     * @return {Promise<any>}
+     */
+    speed(speed = 50) {
+        return this.sendCmd('speed ' + speed);
+    }
+
+    /**
+     *
+     * @return {Promise<any>}
+     */
+    getHeight() {
+        return this.sendCmd('h');
+    }
+
+    /**
+     *
+     */
+    stop() {
+        this.client.close();
+        this.server.close();
         console.log('Goodbye !');
         process.exit();
-    };
+    }
 
     /**
      *
-     * @return {Tello}
+     * @param distance
+     * @return {Promise<any>}
      */
-    this.takeoff = function () {
-        sendCmd('command');
-        sendCmd('takeoff');
-        return this;
-    };
+    left(distance = 50) {
+        return this.sendCmd('left ' + distance);
+    }
 
     /**
      *
-     * @return {Tello}
+     * @param angle
+     * @return {Promise<any>}
      */
-    this.land = function () {
-        sendCmd('land');
-        return this;
-    };
+    rotateCW(angle = 90) {
+        return this.sendCmd('cw ' + angle);
+    }
 
     /**
      *
-     * @param height in cm
-     * @return {Tello}
+     * @return {Promise<any>}
      */
-    this.up = function (height = 50) {
-        sendCmd('up ' + height);
-        return this;
-    };
-    /**
-     *
-     * @param height in cm
-     * @return {Tello}
-     */
-    this.down = function (height = 50) {
-        sendCmd('down ' + height);
-        return this;
-    };
-    /**
-     *
-     * @param distance in cm
-     * @return {Tello}
-     */
-    this.left = function (distance = 50) {
-        sendCmd('left ' + distance);
-        return this;
-    };
-    /**
-     *
-     * @param distance in cm
-     * @return {Tello}
-     */
-    this.right = function (distance = 50) {
-        sendCmd('right ' + distance);
-        return this;
-    };
+    land() {
+        return this.sendCmd('land');
+    }
 
     /**
      *
-     * @param distance in cm
-     * @return {Tello}
+     * @param distance
+     * @return {Promise<any>}
      */
-    this.forward = function (distance = 50) {
-        sendCmd('forward ' + distance);
-        return this;
-    };
-    /**
-     *
-     * @param distance in cm
-     * @return {Tello}
-     */
-    this.backward = function (distance = 50) {
-        sendCmd('forward ' + distance);
-        return this;
-    };
-    /**
-     *
-     * @param angle in degree
-     * @return {Tello}
-     */
-    this.rotateCW = function (angle = 90) {
-        sendCmd('cw ' + angle);
-        return this;
-    };
-    /**
-     *
-     * @param angle in degree
-     * @return {Tello}
-     */
-    this.rotateCCW = function (angle = 90) {
-        sendCmd('ccw ' + angle);
-        return this;
-    };
+    backward(distance = 50) {
+        return this.sendCmd('back ' + distance);
+    }
 
     /**
      *
-     * @param orientation f, b, l, r
-     * @return {Tello}
+     * @param angle
+     * @return {Promise<any>}
      */
-    this.flip = function (orientation = 'f') {
-        sendCmd('f ' + orientation);
-        return this;
-    };
+    rotateCCW(angle = 90) {
+        return this.sendCmd('ccw ' + angle);
+    }
 
     /**
      *
-     * @param speed in cm/s
-     * @return {Tello}
+     * @param height
+     * @return {Promise<any>}
      */
-    this.speed = function (speed = 50) {
-        sendCmd('speed ' + speed);
-        return this;
-    };
+    up(height = 50) {
+        return this.sendCmd('up ' + height);
+    }
 
     /**
      *
-     * @param x in cm
-     * @param y in cm
-     * @param z in cm
-     * @param speed in cm/s
-     * @return {Tello}
+     * @param orientation
+     * @return {Promise<any>}
      */
-    this.flyTo = function (x = 50, y = 50, z = 0, speed = 100) {
-        sendCmd('go ' + x + ' ' + y + ' ' + z + ' ' + speed + ' ');
-        return this;
-    };
+    flip(orientation = 'f') {
+        return this.sendCmd('flip ' + orientation);
+    }
 
     /**
      *
-     * @param x1 in cm
-     * @param y1 in cm
-     * @param z1 in cm
-     * @param x2 in cm
-     * @param y2 in cm
-     * @param z2 in cm
-     * @param speed in cm/s
-     * @return {Tello}
+     * @param x
+     * @param y
+     * @param z
+     * @param speed
+     * @return {Promise<any>}
      */
-    this.curve = function (x1 = 20, y1 = 20, z1 = 20, x2 = 60, y2 = 40, z2 = 0, speed = 60) {
-        sendCmd('curve ' + x1 + ' ' + y1 + ' ' + z1 + ' ' + x2 + ' ' + y2 + ' ' + z2 + ' ' + speed + ' ');
-        return this;
-    };
-
-    /**
-     *
-     * @return {Tello}
-     */
-    this.emergencyStop = function () {
-        sendCmd('emergency');
-        return this;
-    };
-
-    this.getHeight = function () {
-        return {
-            h: sendCmd('h')
-        }
+    flyTo(x = 50, y = 50, z = 0, speed = 100) {
+        return this.sendCmd('go ' + x + ' ' + y + ' ' + z + ' ' + speed + ' ');
     }
 }
 
