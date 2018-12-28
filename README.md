@@ -94,18 +94,20 @@ const tello = require('./lib/tello');
 
 ## Tello flight vars
 
-- height(cm): *h*
-- barometer(cm): *baro*
-- tof distance(cm): *tof*
-- min temperature(°C): *templ*
-- max temperature(°C): *temph*
-- attitude pitch(°): *pitch*
-- attitude roll(°): *roll*
-- attitude yaw(°): *yaw*
-- acceleration x(0.001g): *agx*
-- acceleration y(0.001g): *agy*
-- acceleration z(0.001g): *agz*
-- speed x(cm/s): *vgx*
-- speed y(cm/s): *vgy*
-- speed z(cm/s): *vgz*
-- battery(%): *bat*
+| Name | Unit | Description |
+| --- | --- | --- |
+| `h` | cm | height |
+| `baro` | cm | barometer |
+| `tof` | cm | to floor distance |
+| `templ` | °C | min temperature |
+| `temph` | °C | max temperature |
+| `pitch` | ° | attitude pitch |
+| `roll` | ° | attitude roll |
+| `yaw` | ° | attitude yaw |
+| `agx` | 0.001g | acceleration x |
+| `agy` | 0.001g | acceleration y |
+| `agz` | 0.001g | acceleration z |
+| `vgx` | cm/s | speed x |
+| `vgy` | cm/s | speed y |
+| `vgmlaz` | cm/s | speed z | 
+| `bat` | % | battery |
