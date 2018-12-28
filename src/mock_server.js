@@ -7,11 +7,11 @@ const client = dgram.createSocket('udp4');
 
 server.on('message', (msg, rinfo) => {
     const r = msg.toString().trim();
-     console.log('Received', r);
-        setTimeout(() =>{
-            console.log('respond ok');
-                client.send('ok', rinfo.port, rinfo.address)
-        }, 2000);
+    console.log('Received', r);
+    setTimeout(() => {
+        console.log('respond ok');
+        client.send('ok', rinfo.port, rinfo.address)
+    }, 2000);
 });
 
 server.on('listening', () => {

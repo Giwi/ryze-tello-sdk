@@ -102,7 +102,7 @@ class Tello {
      *
      * @return {Promise<Tello>}
      */
-    emergencyStop() {
+    async emergencyStop() {
         return this.sendCmd('emergency');
     }
 
@@ -110,7 +110,7 @@ class Tello {
      *
      * @return {Promise<Tello>}
      */
-     async takeoff() {
+    async takeoff() {
         await this.sendCmd('command');
         await this.sendCmd('takeoff');
         return this;
@@ -128,7 +128,7 @@ class Tello {
      * @return {Promise<Tello>}
      */
     curve(x1 = 20, y1 = 20, z1 = 20, x2 = 60, y2 = 40, z2 = 0, speed = 60) {
-       return this.sendCmd('curve ' + x1 + ' ' + y1 + ' ' + z1 + ' ' + x2 + ' ' + y2 + ' ' + z2 + ' ' + speed + ' ');
+        return this.sendCmd('curve ' + x1 + ' ' + y1 + ' ' + z1 + ' ' + x2 + ' ' + y2 + ' ' + z2 + ' ' + speed + ' ');
 
     }
 
