@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node .src//index.js"
+    "start": "node src/index.js",
+    "mock" : "node src/mock_server.js"
   },
   "dependencies": {
   }

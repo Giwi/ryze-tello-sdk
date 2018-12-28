@@ -24,9 +24,20 @@ class Tello {
 
     /**
      *
+     * @return {Tello}
      */
     mock() {
         this.deviceIP = '127.0.0.1';
+        return this;
+    }
+
+    /**
+     *
+     * @param value
+     * @return {Promise<{tello: Tello, value: *}>}
+     */
+    get(value) {
+        return Promise.resolve({value: this.osdData[value], tello: this});
     }
 
     /**
@@ -54,7 +65,7 @@ class Tello {
     /**
      *
      * @param cmd
-     * @return {Promise<any>}
+     * @return {Promise<Tello>}
      */
     sendMethod(cmd) {
         return new Promise(((resolve, reject) => {
@@ -73,7 +84,7 @@ class Tello {
     /**
      *
      * @param cmd
-     * @return {Promise<any>}
+     * @return {Promise<Tello>}
      */
     sendCmd(cmd) {
         return new Promise(((resolve, reject) => {
@@ -89,7 +100,7 @@ class Tello {
 
     /**
      *
-     * @return {Promise<any>}
+     * @return {Promise<Tello>}
      */
     emergencyStop() {
         return this.sendCmd('emergency');
@@ -97,38 +108,34 @@ class Tello {
 
     /**
      *
-     * @return {Promise<any>}
+     * @return {Promise<Tello>}
      */
-    takeoff() {
-        return new Promise(resolve => {
-            this.sendCmd('command')
-                .then(() => this.sendCmd('takeoff')
-                    .then(() => {
-                        resolve(this);
-                    })
-                )
-        });
+     async takeoff() {
+        await this.sendCmd('command');
+        await this.sendCmd('takeoff');
+        return this;
     }
 
     /**
      *
-     * @param x1
-     * @param y1
-     * @param z1
-     * @param x2
-     * @param y2
-     * @param z2
-     * @param speed
-     * @return {Promise<any>}
+     * @param x1 in cm
+     * @param y1 in cm
+     * @param z1 in cm
+     * @param x2 in cm
+     * @param y2 in cm
+     * @param z2 in cm
+     * @param speed in cm/s
+     * @return {Promise<Tello>}
      */
     curve(x1 = 20, y1 = 20, z1 = 20, x2 = 60, y2 = 40, z2 = 0, speed = 60) {
-        return this.sendCmd('curve ' + x1 + ' ' + y1 + ' ' + z1 + ' ' + x2 + ' ' + y2 + ' ' + z2 + ' ' + speed + ' ');
+       return this.sendCmd('curve ' + x1 + ' ' + y1 + ' ' + z1 + ' ' + x2 + ' ' + y2 + ' ' + z2 + ' ' + speed + ' ');
+
     }
 
     /**
      *
-     * @param distance
-     * @return {Promise<any>}
+     * @param distance in cm
+     * @return {Promise<Tello>}
      */
     forward(distance = 50) {
         return this.sendCmd('forward ' + distance);
@@ -136,7 +143,7 @@ class Tello {
 
     /**
      *
-     * @return {Promise<any>}
+     * @return {Promise<Tello>}
      */
     start() {
         return new Promise(resolve => {
@@ -163,8 +170,8 @@ class Tello {
 
     /**
      *
-     * @param distance
-     * @return {Promise<any>}
+     * @param distance in cm
+     * @return {Promise<Tello>}
      */
     right(distance = 50) {
         return this.sendCmd('right ' + distance);
@@ -172,8 +179,8 @@ class Tello {
 
     /**
      *
-     * @param height
-     * @return {Promise<any>}
+     * @param height in cm
+     * @return {Promise<Tello>}
      */
     down(height = 50) {
         return this.sendCmd('down ' + height);
@@ -181,19 +188,11 @@ class Tello {
 
     /**
      *
-     * @param speed
-     * @return {Promise<any>}
+     * @param speed in cm/s
+     * @return {Promise<Tello>}
      */
     speed(speed = 50) {
         return this.sendCmd('speed ' + speed);
-    }
-
-    /**
-     *
-     * @return {Promise<any>}
-     */
-    getHeight() {
-        return this.sendCmd('h');
     }
 
     /**
@@ -208,8 +207,8 @@ class Tello {
 
     /**
      *
-     * @param distance
-     * @return {Promise<any>}
+     * @param distance in cm
+     * @return {Promise<Tello>}
      */
     left(distance = 50) {
         return this.sendCmd('left ' + distance);
@@ -217,8 +216,8 @@ class Tello {
 
     /**
      *
-     * @param angle
-     * @return {Promise<any>}
+     * @param angle in degree
+     * @return {Promise<Tello>}
      */
     rotateCW(angle = 90) {
         return this.sendCmd('cw ' + angle);
@@ -226,7 +225,7 @@ class Tello {
 
     /**
      *
-     * @return {Promise<any>}
+     * @return {Promise<Tello>}
      */
     land() {
         return this.sendCmd('land');
@@ -234,8 +233,8 @@ class Tello {
 
     /**
      *
-     * @param distance
-     * @return {Promise<any>}
+     * @param distance in cm
+     * @return {Promise<Tello>}
      */
     backward(distance = 50) {
         return this.sendCmd('back ' + distance);
@@ -243,8 +242,8 @@ class Tello {
 
     /**
      *
-     * @param angle
-     * @return {Promise<any>}
+     * @param angle in degree
+     * @return {Promise<Tello>}
      */
     rotateCCW(angle = 90) {
         return this.sendCmd('ccw ' + angle);
@@ -252,8 +251,8 @@ class Tello {
 
     /**
      *
-     * @param height
-     * @return {Promise<any>}
+     * @param height in cm
+     * @return {Promise<Tello>}
      */
     up(height = 50) {
         return this.sendCmd('up ' + height);
@@ -261,8 +260,8 @@ class Tello {
 
     /**
      *
-     * @param orientation
-     * @return {Promise<any>}
+     * @param orientation: f, b, l, r
+     * @return {Promise<Tello>}
      */
     flip(orientation = 'f') {
         return this.sendCmd('flip ' + orientation);
@@ -270,11 +269,11 @@ class Tello {
 
     /**
      *
-     * @param x
-     * @param y
-     * @param z
-     * @param speed
-     * @return {Promise<any>}
+     * @param x in cm
+     * @param y in cm
+     * @param z in cm
+     * @param speed in cm/s
+     * @return {Promise<Tello>}
      */
     flyTo(x = 50, y = 50, z = 0, speed = 100) {
         return this.sendCmd('go ' + x + ' ' + y + ' ' + z + ' ' + speed + ' ');
