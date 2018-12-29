@@ -1,8 +1,3 @@
-<style>
-table {
-    width:100%;
-}
-</style>
 # Ryze Tello commands
 
 NodeJS utility for the [Ryze Tello Drone](https://www.ryzerobotics.com/tello)
