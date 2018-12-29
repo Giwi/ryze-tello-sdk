@@ -1,0 +1,38 @@
+{
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "source": {
+    "includePattern": ".+\\.js(doc|x)?$",
+    "excludePattern": "(^|\\/|\\\\)_"
+  },
+  "sourceType": "module",
+  "tags": {
+    "allowUnknownTags": true,
+    "dictionaries": [
+      "jsdoc",
+      "closure"
+    ]
+  },
+  "templates": {
+    "name": "Ryze Tello NodeJS lib",
+    "footerText": "Giwi Softwares",
+    "logo": {
+      "url": "http://www.giwi.fr/wp-content/uploads/2014/08/giwi.png",
+      "width": "300px",
+      "height": "66px",
+      "link": "https://giwi.fr"
+    },
+    "cleverLinks": false,
+    "monospaceLinks": false
+  },
+  "opts": {
+    "template": "node_modules/tui-jsdoc-template",
+    "encoding": "utf8",
+    "destination": "./docs",
+    "recurse": true,
+    "readme": "./README.md",
+    "tutorials": "./tutorials"
+  }
+}

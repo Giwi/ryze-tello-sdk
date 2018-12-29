@@ -1,11 +1,20 @@
 {
   "name": "ryze-tello-sdk",
+  "author": {
+    "name": "Giwi"
+  },
   "version": "0.0.0",
   "private": true,
   "scripts": {
     "start": "node src/index.js",
-    "mock" : "node src/mock_server.js"
+    "mock": "node src/mock_server.js",
+    "doc": "jsdoc src -c .jsdoc.json",
+    "gh": "yarn doc && gh-pages -d docs"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
+    "gh-pages": "^2.0.1",
+    "jsdoc": "^3.5.5",
+    "tui-jsdoc-template": "^1.2.2"
   }
 }

@@ -1,5 +1,24 @@
+/**
+ * Class representing a socket connection.
+ *
+ * @class
+ * @tutorial socket-tutorial
+ */
 'use strict';
 const tello = require('./lib/tello');
+
+(async () => {
+    // Start the engine
+    await tello.start();
+    console.log('battery', (await tello.get('bat')).value, '%');
+    await tello.startStream();
+    await tello.wait(10000);
+    await tello.stopStream();
+    // And then shut down the engine
+})().then(() => tello.stop());
+
+
+/*
 
 (async () => {
     // Start the engine
@@ -22,3 +41,4 @@ const tello = require('./lib/tello');
     await tello.land();
     // And then shut down the engine
 })().then(() => tello.stop());
+*/

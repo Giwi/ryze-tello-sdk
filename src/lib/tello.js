@@ -6,9 +6,11 @@ const HOST = '192.168.10.1';
 const PORT2 = 8890;
 const HOST2 = '0.0.0.0';
 const localPort = 50602;
+const {spawn} = require('child_process');
 
 /**
- *
+ * @class Tello
+ * @module Tello
  */
 class Tello {
     /**
@@ -20,6 +22,69 @@ class Tello {
         this.deviceIP = HOST;
         this.client = undefined;
         this.server = undefined;
+        this.h264encoder = undefined;
+    }
+
+    /**
+     *
+     * @param {number} time in ms
+     * @return {Promise<Tello>}
+     */
+    async wait(time) {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                resolve(this);
+            }, time);
+        });
+    };
+
+
+    /**
+     *
+     * @return {Promise<Tello>}
+     */
+    stopStream() {
+        return new Promise(resolve => {
+            this.sendCmd('streamoff').then(() => {
+                if (this.tello_video) {
+                    this.tello_video.close();
+                    this.tello_video = undefined;
+                }
+                if (this.h264encoder) {
+                    this.h264encoder.kill();
+                }
+                resolve(this)
+            });
+        });
+    }
+
+    /**
+     *
+     * @return {Promise<Tello>}
+     */
+    startStream() {
+        return new Promise(resolve => {
+            this.sendCmd('streamon').then(() => {
+                this.tello_video = dgram.createSocket('udp4');
+                this.h264encoder_spawn = {
+                    "command": 'mplayer',
+                    "args": ['-gui', '-nolirc', '-fps', '35', '-really-quiet', '-']
+                };
+                this.h264encoder = spawn(this.h264encoder_spawn.command, this.h264encoder_spawn.args);
+                this.h264encoder.on('close', (code) => {
+                    console.log(`child process exited with code ${code}`);
+                });
+                this.h264encoder.stderr.on('data', data => {
+                    console.log("mplayer error", data.toString());
+                });
+                this.tello_video.on('message', msg => this.h264encoder.stdin.write(msg));
+                this.tello_video.on('listening', () => {
+                    console.log(`tello_video listening ${this.tello_video.address().address}:${this.tello_video.address().port}`);
+                    resolve(this)
+                });
+                this.tello_video.bind(11111, HOST2);
+            });
+        });
     }
 
     /**
@@ -33,7 +98,7 @@ class Tello {
 
     /**
      *
-     * @param value
+     * @param {string} value
      * @return {Promise<{tello: Tello, value: *}>}
      */
     get(value) {
@@ -64,7 +129,7 @@ class Tello {
 
     /**
      *
-     * @param cmd
+     * @param {string} cmd
      * @return {Promise<Tello>}
      */
     sendMethod(cmd) {
@@ -75,7 +140,7 @@ class Tello {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve()
+                    resolve(this)
                 }
             });
         }));
@@ -83,7 +148,7 @@ class Tello {
 
     /**
      *
-     * @param cmd
+     * @param {string} cmd
      * @return {Promise<Tello>}
      */
     sendCmd(cmd) {
@@ -110,21 +175,19 @@ class Tello {
      *
      * @return {Promise<Tello>}
      */
-    async takeoff() {
-        await this.sendCmd('command');
-        await this.sendCmd('takeoff');
-        return this;
+    takeoff() {
+        return this.sendCmd('takeoff');
     }
 
     /**
      *
-     * @param x1 in cm
-     * @param y1 in cm
-     * @param z1 in cm
-     * @param x2 in cm
-     * @param y2 in cm
-     * @param z2 in cm
-     * @param speed in cm/s
+     * @param {number} x1 in cm
+     * @param {number} y1 in cm
+     * @param {number} z1 in cm
+     * @param {number} x2 in cm
+     * @param {number} y2 in cm
+     * @param {number} z2 in cm
+     * @param {number} speed in cm/s
      * @return {Promise<Tello>}
      */
     curve(x1 = 20, y1 = 20, z1 = 20, x2 = 60, y2 = 40, z2 = 0, speed = 60) {
@@ -134,7 +197,7 @@ class Tello {
 
     /**
      *
-     * @param distance in cm
+     * @param {number} distance in cm
      * @return {Promise<Tello>}
      */
     forward(distance = 50) {
@@ -151,7 +214,9 @@ class Tello {
             this.server = dgram.createSocket('udp4');
             this.client.bind(localPort, '0.0.0.0', () => {
                 console.log('connected');
-                resolve(this);
+                this.sendCmd('command').then(() => {
+                    resolve(this);
+                });
             });
             process.on('SIGINT', () => {
                 this.stop();
@@ -170,7 +235,7 @@ class Tello {
 
     /**
      *
-     * @param distance in cm
+     * @param {number} distance in cm
      * @return {Promise<Tello>}
      */
     right(distance = 50) {
@@ -179,7 +244,7 @@ class Tello {
 
     /**
      *
-     * @param height in cm
+     * @param {number} height in cm
      * @return {Promise<Tello>}
      */
     down(height = 50) {
@@ -188,7 +253,7 @@ class Tello {
 
     /**
      *
-     * @param speed in cm/s
+     * @param {number} speed in cm/s
      * @return {Promise<Tello>}
      */
     speed(speed = 50) {
@@ -196,18 +261,24 @@ class Tello {
     }
 
     /**
-     *
+     * Ends the process
      */
     stop() {
         this.client.close();
         this.server.close();
+        if (this.tello_video) {
+            this.tello_video.close();
+        }
+        if (this.h264encoder) {
+            this.h264encoder.kill();
+        }
         console.log('Goodbye !');
         process.exit();
     }
 
     /**
      *
-     * @param distance in cm
+     * @param {number} distance in cm
      * @return {Promise<Tello>}
      */
     left(distance = 50) {
@@ -216,7 +287,7 @@ class Tello {
 
     /**
      *
-     * @param angle in degree
+     * @param {number} angle in degree
      * @return {Promise<Tello>}
      */
     rotateCW(angle = 90) {
@@ -233,7 +304,7 @@ class Tello {
 
     /**
      *
-     * @param distance in cm
+     * @param {number} distance in cm
      * @return {Promise<Tello>}
      */
     backward(distance = 50) {
@@ -242,7 +313,7 @@ class Tello {
 
     /**
      *
-     * @param angle in degree
+     * @param {number} angle in degree
      * @return {Promise<Tello>}
      */
     rotateCCW(angle = 90) {
@@ -251,7 +322,7 @@ class Tello {
 
     /**
      *
-     * @param height in cm
+     * @param {number} height in cm
      * @return {Promise<Tello>}
      */
     up(height = 50) {
@@ -260,7 +331,7 @@ class Tello {
 
     /**
      *
-     * @param orientation: f, b, l, r
+     * @param {string} orientation values: f, b, l, r
      * @return {Promise<Tello>}
      */
     flip(orientation = 'f') {
@@ -269,10 +340,10 @@ class Tello {
 
     /**
      *
-     * @param x in cm
-     * @param y in cm
-     * @param z in cm
-     * @param speed in cm/s
+     * @param {number} x in cm
+     * @param {number} y in cm
+     * @param {number} z in cm
+     * @param {number} speed in cm/s
      * @return {Promise<Tello>}
      */
     flyTo(x = 50, y = 50, z = 0, speed = 100) {
