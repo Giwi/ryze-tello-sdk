@@ -69,7 +69,7 @@ const tello = require('./lib/tello');
 | `vgmlaz` | cm/s | speed z | 
 | `bat` | % | battery |
 
-## RoadMap
+## RoadMap
 
 - [ ] Save video on the file system
 - [ ] Take pictures
