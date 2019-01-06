@@ -68,3 +68,11 @@ const tello = require('./lib/tello');
 | `vgy` | cm/s | speed y |
 | `vgmlaz` | cm/s | speed z | 
 | `bat` | % | battery |
+
+## RoadMap
+
+- [ ] Save video on the file system
+- [ ] Take pictures
+- [ ] RealTime remote control with web video stream
+- [ ] Raspberry setup
+- [ ] GamePad support on Raspberry
