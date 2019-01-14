@@ -1,29 +1,31 @@
 'use strict';
 const dgram = require('dgram');
 const EventEmitter = require('events');
+const opn = require('opn');
+const {spawn} = require('child_process');
+const TelloWebServer = require('../servers/webServer');
+const TelloTelemetry = require('../servers/telemetry');
+
 const PORT = 8889;
 const HOST = '192.168.10.1';
 const PORT2 = 8890;
 const HOST2 = '0.0.0.0';
 const localPort = 50602;
-const {spawn} = require('child_process');
 
 /**
  * @class Tello
  * @module Tello
  */
 class Tello {
-    /**
-     *
-     */
-    constructor() {
-        this.myEmitter = new EventEmitter();
-        this.osdData = {};
-        this.deviceIP = HOST;
-        this.client = undefined;
-        this.server = undefined;
-        this.h264encoder = undefined;
-    }
+    isMock = false;
+    hasTelemetry = false;
+    myEmitter = new EventEmitter();
+    osdData = {};
+    deviceIP = HOST;
+    client = undefined;
+    server = undefined;
+    h264encoder = undefined;
+
 
     /**
      *
@@ -72,14 +74,14 @@ class Tello {
                 };
                 this.h264encoder = spawn(this.h264encoder_spawn.command, this.h264encoder_spawn.args);
                 this.h264encoder.on('close', (code) => {
-                    console.log(`child process exited with code ${code}`);
+                    console.log(new Date(), '[Tello]', `child process exited with code ${code}`);
                 });
                 this.h264encoder.stderr.on('data', data => {
-                    console.log("mplayer error", data.toString());
+                    console.log(new Date(), '[Tello]', 'mplayer error', data.toString());
                 });
                 this.tello_video.on('message', msg => this.h264encoder.stdin.write(msg));
                 this.tello_video.on('listening', () => {
-                    console.log(`tello_video listening ${this.tello_video.address().address}:${this.tello_video.address().port}`);
+                    console.log(new Date(), '[Tello]', `tello_video listening ${this.tello_video.address().address}:${this.tello_video.address().port}`);
                     resolve(this)
                 });
                 this.tello_video.bind(11111, HOST2);
@@ -93,7 +95,20 @@ class Tello {
      */
     mock() {
         this.deviceIP = '127.0.0.1';
+        this.isMock = true;
         return this;
+    }
+
+    startTelemetry() {
+        return new Promise(resolve => {
+           if(!this.isMock) {
+               TelloWebServer.start()
+           }
+           TelloTelemetry.start().then(() =>{
+               this.hasTelemetry = true;
+               opn('http://127.0.0.1:3000/telemetry.html')
+           });
+        });
     }
 
     /**
@@ -115,6 +130,9 @@ class Tello {
             fieldList.forEach(field => {
                 const fields = field.split(':');
                 this.osdData[fields[0]] = fields[1];
+                if(this.hasTelemetry) {
+                    TelloTelemetry.send(this.osdData);
+                }
             });
             /*     console.log('fieldList', fieldList)
                  console.log('osdData', osdData)*/
@@ -122,7 +140,7 @@ class Tello {
 
         this.server.on('listening', () => {
             const address = this.server.address();
-            console.log('server listening', address.address, address.port);
+            console.log(new Date(), '[Tello]', 'server listening', address.address, address.port);
         });
         this.server.bind(PORT2, HOST2);
     }
@@ -135,7 +153,7 @@ class Tello {
     sendMethod(cmd) {
         return new Promise(((resolve, reject) => {
             const message = new Buffer(cmd);
-            console.log('send:', cmd);
+            console.log(new Date(), '[Tello]', 'send:', cmd);
             this.client.send(message, 0, message.length, PORT, this.deviceIP, err => {
                 if (err) {
                     reject(err);
@@ -213,7 +231,7 @@ class Tello {
             this.client = dgram.createSocket('udp4');
             this.server = dgram.createSocket('udp4');
             this.client.bind(localPort, '0.0.0.0', () => {
-                console.log('connected');
+                console.log(new Date(), '[Tello]', 'connected');
                 this.sendCmd('command').then(() => {
                     resolve(this);
                 });
@@ -223,9 +241,9 @@ class Tello {
             });
             this.client.on('message', msg => {
                 if (msg.toString() === 'ok') {
-                    console.log('Data received from server : ' + msg.toString());
+                    console.log(new Date(), '[Tello]', 'Data received from server : ' + msg.toString());
                 } else {
-                    console.error('not ok', msg);
+                    console.error(new Date(), '[Tello]', 'not ok', msg);
                 }
                 this.myEmitter.emit('status');
             });
@@ -272,7 +290,10 @@ class Tello {
         if (this.h264encoder) {
             this.h264encoder.kill();
         }
-        console.log('Goodbye !');
+        if(!this.isMock) {
+            TelloWebServer.stop();
+        }
+        console.log(new Date(), '[Tello]', 'Goodbye !');
         process.exit();
     }
 

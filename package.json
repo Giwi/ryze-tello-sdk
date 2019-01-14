@@ -7,11 +7,14 @@
   "private": true,
   "scripts": {
     "start": "node src/index.js",
-    "mock": "node src/mock_server.js",
+    "mock": "node src/servers/mock_server.js",
     "doc": "jsdoc src -c .jsdoc.json",
     "gh": "yarn doc && gh-pages -d docs"
   },
-  "dependencies": {},
+  "dependencies": {
+    "opn": "^5.4.0",
+    "websocket": "^1.0.28"
+  },
   "devDependencies": {
     "gh-pages": "^2.0.1",
     "jsdoc": "^3.5.5",
