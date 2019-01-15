@@ -36,7 +36,7 @@ const tello = require('./lib/tello');
 (async () => {
     // Start the engine
     await tello.start();
-    await tello.startStream();
+    // await tello.startStream();
     await tello.startTelemetry();
     // Takeoff
   //   await tello.takeoff();
@@ -54,6 +54,7 @@ const tello = require('./lib/tello');
     //await tello.backward(100);
     // Finally land
     // await tello.land();
-    await tello.stopStream();
+  //  await tello.stopStream();
     // And then shut down the engine
+    await tello.wait(100000)
 })().then(() => tello.stop())

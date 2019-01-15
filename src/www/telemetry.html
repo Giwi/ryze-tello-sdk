@@ -4,12 +4,6 @@
     <meta charset="utf-8">
     <title>Tello Telemetry</title>
     <link rel="stylesheet" href="./bower_components/bootstrap/dist/css/bootstrap.min.css"/>
-    <style>
-        #content {
-            overflow-y: scroll;
-            height: 160px;
-        }
-    </style>
 </head>
 <body>
 <div class="container">
@@ -33,7 +27,11 @@
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">Battery</h5>
-                <canvas id="bat"></canvas>
+                <div class="progress">
+                    <div id="bat" class="progress-bar bg-success" role="progressbar" style="width: 100%"
+                         aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -59,7 +57,6 @@
         // for better performance - to avoid searching in DOM
         var status = $('#status');
         var heightChart;
-        var batChart;
         var tempChart;
         // if user is running mozilla then use it's built-in WebSocket
         window.WebSocket = window.WebSocket || window.MozWebSocket;
@@ -158,16 +155,6 @@
                 },
                 options: tempOptions
             });
-
-            batChart = new Chart($('#bat'), {
-                type: 'pie',
-                data: {
-                    labels: ['Battery', 'Used'],
-                    datasets: [{data: [], backgroundColor: [chartColors.green, chartColors.red]}],
-
-                },
-                options: options
-            });
         };
 
         connection.onerror = function (error) {
@@ -213,8 +200,14 @@
 
 
             var b = parseFloat(message.bat);
-            batChart.data.datasets[0].data = [b, 100 - b];
-            batChart.update();
+            var bat = $('#bat').html(b + '%').attr('aria-valuenow', b).css('width', b + '%').removeClass('bg-success');
+            if (b > 80) {
+                bat.addClass('bg-success')
+            } else if (b > 20) {
+                bat.addClass('bg-warning')
+            } else {
+                bat.addClass('bg-danger')
+            }
         }
     });
 </script>
