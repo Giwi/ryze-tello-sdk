@@ -72,14 +72,6 @@
         // open connection
         var connection = new WebSocket('ws://127.0.0.1:1338');
         var options = {
-            scales: {
-                xAxes: [{
-                    type: 'time',
-                    time: {
-                        min: moment()
-                    }
-                }]
-            },
             hover: {
                 animationDuration: 0, // duration of animations when hovering an item
             },
@@ -90,15 +82,35 @@
             },
         };
         var heightOptions = {...options};
-        heightOptions.scales.yAxes = [{
-            display: true,
-            labelString: 'cm'
-        }];
+        heightOptions.scales = {
+            yAxes: [{
+                scaleLabel: {
+                    display: true,
+                    labelString: 'cm'
+                }
+            }],
+            xAxes: [{
+                type: 'time',
+                time: {
+                    min: moment()
+                }
+            }]
+        };
         var tempOptions = {...options};
-        tempOptions.scales.yAxes = [{
-            display: true,
-            labelString: '°C'
-        }];
+        tempOptions.scales = {
+            yAxes: [{
+                scaleLabel: {
+                    display: true,
+                    labelString: '°C'
+                }
+            }],
+            xAxes: [{
+                type: 'time',
+                time: {
+                    min: moment()
+                }
+            }]
+        };
         connection.onopen = function () {
             status.html('Connected');
             heightChart = new Chart($('#height'), {
