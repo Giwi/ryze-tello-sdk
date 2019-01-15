@@ -35,10 +35,11 @@ const tello = require('./lib/tello');
 */
 (async () => {
     // Start the engine
-    await tello.mock().start();
+    await tello.start();
+    await tello.startStream();
     await tello.startTelemetry();
     // Takeoff
-     await tello.takeoff();
+  //   await tello.takeoff();
     // Read the battery status
  //   console.log('battery', (await tello.get('bat')).value, '%');
     // Go up
@@ -52,6 +53,7 @@ const tello = require('./lib/tello');
     // Go backward
     //await tello.backward(100);
     // Finally land
-     await tello.land();
+    // await tello.land();
+    await tello.stopStream();
     // And then shut down the engine
 })().then(() => tello.stop())

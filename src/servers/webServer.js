@@ -45,9 +45,11 @@ class TelloWebServer {
     }
 
     stop() {
-        this.httpServer.close(() => {
-            console.log(new Date(), '[Web Server]', 'Web Server stopped');
-        })
+        if( this.httpServer) {
+            this.httpServer.close(() => {
+                console.log(new Date(), '[Web Server]', 'Web Server stopped');
+            })
+        }
     }
 }
 

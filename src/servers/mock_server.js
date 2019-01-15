@@ -44,10 +44,10 @@ wsServer.on('request', function (request) {
 server.on('message', (msg, rinfo) => {
     const r = msg.toString().trim();
     console.log(new Date(), '[Mock Server - UDP]', 'Received', r);
-    wsClients.forEach(c => c.sendUTF(r));
+    wsClients.forEach(c => c.sendUTF(JSON.stringify({type: 'request', message: r})));
     setTimeout(() => {
         console.log(new Date(), '[Mock Server - UDP]', 'respond ok');
-        wsClients.forEach(c => c.sendUTF('ok'));
+        wsClients.forEach(c => c.sendUTF(JSON.stringify({type: 'response', message: 'ok'})));
         client.send('ok', rinfo.port, rinfo.address)
     }, 2000);
 });

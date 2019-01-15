@@ -1,0 +1,24 @@
+{
+  "name": "www",
+  "homepage": "https://github.com/Giwi/ryze-tello-sdk",
+  "authors": [
+    "Xavier MARIN <marin.xavier@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^3.3.1",
+    "bootstrap": "^4.2.1",
+    "chart.js": "chartjs#^2.7.3",
+    "moment": "^2.23.0"
+  }
+}

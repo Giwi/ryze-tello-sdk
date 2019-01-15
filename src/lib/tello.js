@@ -17,15 +17,17 @@ const localPort = 50602;
  * @module Tello
  */
 class Tello {
-    isMock = false;
-    hasTelemetry = false;
-    myEmitter = new EventEmitter();
-    osdData = {};
-    deviceIP = HOST;
-    client = undefined;
-    server = undefined;
-    h264encoder = undefined;
 
+    constructor() {
+        this.isMock = false;
+        this.hasTelemetry = false;
+        this.myEmitter = new EventEmitter();
+        this.osdData = {};
+        this.deviceIP = HOST;
+        this.client = undefined;
+        this.server = undefined;
+        this.h264encoder = undefined;
+    }
 
     /**
      *
@@ -79,6 +81,23 @@ class Tello {
                 this.h264encoder.stderr.on('data', data => {
                     console.log(new Date(), '[Tello]', 'mplayer error', data.toString());
                 });
+
+              /*  this.h264encoder.stdout.on('data', data => {
+                    const idx = data.indexOf(this.headers['h264_baseline']);
+                    if (idx > -1 && this.h264chunks.length > 0) {
+                        this.h264chunks.push(data.slice(0, idx));
+                        if (this.hasTelemetry) {
+                            try {
+                                TelloTelemetry.sendVideo(Buffer.concat(this.h264chunks).toString('binary'));
+                            } catch (e) {
+                            }
+                        }
+                        this.h264chunks = [];
+                        this.h264chunks.push(data.slice(idx));
+                    } else {
+                        this.h264chunks.push(data);
+                    }
+                });*/
                 this.tello_video.on('message', msg => this.h264encoder.stdin.write(msg));
                 this.tello_video.on('listening', () => {
                     console.log(new Date(), '[Tello]', `tello_video listening ${this.tello_video.address().address}:${this.tello_video.address().port}`);
@@ -101,13 +120,13 @@ class Tello {
 
     startTelemetry() {
         return new Promise(resolve => {
-           if(!this.isMock) {
-               TelloWebServer.start()
-           }
-           TelloTelemetry.start().then(() =>{
-               this.hasTelemetry = true;
-               opn('http://127.0.0.1:3000/telemetry.html')
-           });
+            if (!this.isMock) {
+                TelloWebServer.start()
+            }
+            TelloTelemetry.start().then(() => {
+                this.hasTelemetry = true;
+                opn('http://127.0.0.1:3000/telemetry.html')
+            });
         });
     }
 
@@ -130,7 +149,7 @@ class Tello {
             fieldList.forEach(field => {
                 const fields = field.split(':');
                 this.osdData[fields[0]] = fields[1];
-                if(this.hasTelemetry) {
+                if (this.hasTelemetry) {
                     TelloTelemetry.send(this.osdData);
                 }
             });
@@ -290,7 +309,7 @@ class Tello {
         if (this.h264encoder) {
             this.h264encoder.kill();
         }
-        if(!this.isMock) {
+        if (!this.isMock) {
             TelloWebServer.stop();
         }
         console.log(new Date(), '[Tello]', 'Goodbye !');

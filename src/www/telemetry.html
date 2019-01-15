@@ -3,78 +3,172 @@
 <head>
     <meta charset="utf-8">
     <title>Tello Telemetry</title>
+    <link rel="stylesheet" href="./bower_components/bootstrap/dist/css/bootstrap.min.css"/>
     <style>
-        p {
-            line-height: 18px;
-        }
-
-        div {
-            width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
         #content {
-            padding: 5px;
-            background: #ddd;
-            border-radius: 5px;
             overflow-y: scroll;
-            border: 1px solid #CCC;
-            margin-top: 10px;
             height: 160px;
-        }
-
-        #status {
-            width: 88px;
-            display: block;
-            float: left;
-            margin-top: 15px;
         }
     </style>
 </head>
 <body>
-<h1>Telemetry</h1>
-<div id="content"></div>
-<div>
-    <span id="status">Connecting...</span>
+<div class="container">
+    <h1>Telemetry</h1>
+    <div id="status" class="alert alert-info">Connecting...</div>
+    <div class="card-columns">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Height</h5>
+                <canvas id="height"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Temperatures</h5>
+                <canvas id="temp"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Battery</h5>
+                <canvas id="bat"></canvas>
+            </div>
+        </div>
+
+    </div>
 </div>
-<script src="https://code.jquery.com/jquery-3.3.1.min.js"
-        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-        crossorigin="anonymous"></script>
+<script src="./bower_components/jquery/dist/jquery.min.js"></script>
+<script src="./bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="./bower_components/moment/moment.js"></script>
+<script src="./bower_components/chart.js/dist/Chart.min.js"></script>
 <script language="JavaScript">
+    var chartColors = {
+        red: 'rgb(255, 99, 132)',
+        orange: 'rgb(255, 159, 64)',
+        yellow: 'rgb(255, 205, 86)',
+        green: 'rgb(75, 192, 192)',
+        blue: 'rgb(54, 162, 235)',
+        purple: 'rgb(153, 102, 255)',
+        grey: 'rgb(201, 203, 207)'
+    };
 
     $(function () {
         "use strict";
         // for better performance - to avoid searching in DOM
-        var content = $('#content');
         var status = $('#status');
+        var heightChart;
+        var batChart;
+        var tempChart;
         // if user is running mozilla then use it's built-in WebSocket
         window.WebSocket = window.WebSocket || window.MozWebSocket;
         // if browser doesn't support WebSocket, just show
         // some notification and exit
         if (!window.WebSocket) {
-            content.html($('<p>', {text: 'Sorry, but your browser doesn\'t support WebSocket.'}));
-            status.hide();
+            status.html($('<p>', {text: 'Sorry, but your browser doesn\'t support WebSocket.'}));
             return;
         }
         // open connection
         var connection = new WebSocket('ws://127.0.0.1:1338');
+        var options = {
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    time: {
+                        min: moment()
+                    }
+                }]
+            },
+            hover: {
+                animationDuration: 0, // duration of animations when hovering an item
+            },
 
+            responsiveAnimationDuration: 0,
+            animation: {
+                duration: 0
+            },
+        };
+        var heightOptions = {...options};
+        heightOptions.scales.yAxes = [{
+            display: true,
+            labelString: 'cm'
+        }];
+        var tempOptions = {...options};
+        tempOptions.scales.yAxes = [{
+            display: true,
+            labelString: '°C'
+        }];
         connection.onopen = function () {
             status.html('Connected');
+            heightChart = new Chart($('#height'), {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            data: [],
+                            label: 'Height',
+                            fill: false,
+                            backgroundColor: window.chartColors.blue,
+                            borderColor: window.chartColors.blue
+                        },
+                        {
+                            data: [],
+                            label: 'To floor distance',
+                            fill: false,
+                            backgroundColor: window.chartColors.red,
+                            borderColor: window.chartColors.red
+                        }
+                    ]
+                },
+                options: heightOptions
+            });
+
+            tempChart = new Chart($('#temp'), {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            data: [],
+                            label: 'Min temperature',
+                            fill: false,
+                            backgroundColor: window.chartColors.blue,
+                            borderColor: window.chartColors.blue
+                        },
+                        {
+                            data: [],
+                            label: 'Max temperature',
+                            fill: false,
+                            backgroundColor: window.chartColors.red,
+                            borderColor: window.chartColors.red
+                        }
+                    ]
+                },
+                options: tempOptions
+            });
+
+            batChart = new Chart($('#bat'), {
+                type: 'pie',
+                data: {
+                    labels: ['Battery', 'Used'],
+                    datasets: [{data: [], backgroundColor: [chartColors.green, chartColors.red]}],
+
+                },
+                options: options
+            });
         };
 
         connection.onerror = function (error) {
             // just in there were some problems with connection...
             console.error(error);
-            content.html($('<p>', {
+            status.html($('<p>', {
                 text: 'Sorry, but there\'s some problem with your '
                     + 'connection or the server is down.'
             }));
         };
 
         connection.onmessage = function (message) {
-            addMessage(message.data);
+            telemetry(JSON.parse(message.data));
         };
 
         setInterval(function () {
@@ -83,8 +177,32 @@
             }
         }, 3000);
 
-        function addMessage(message) {
-            content.prepend('<pre>' + message + '</pre>');
+        function telemetry(message) {
+            var time = moment();
+            heightChart.data.datasets[0].data.push({t: time, y: parseFloat(message.h)});
+            if (heightChart.data.datasets[0].data.length > 50) {
+                heightChart.data.datasets[0].data.shift();
+            }
+            heightChart.data.datasets[1].data.push({t: time, y: parseFloat(message.tof)});
+            if (heightChart.data.datasets[1].data.length > 50) {
+                heightChart.data.datasets[1].data.shift();
+            }
+            heightChart.update();
+
+            tempChart.data.datasets[0].data.push({t: time, y: parseFloat(message.templ)});
+            if (tempChart.data.datasets[0].data.length > 50) {
+                tempChart.data.datasets[0].data.shift();
+            }
+            tempChart.data.datasets[1].data.push({t: time, y: parseFloat(message.temph)});
+            if (tempChart.data.datasets[1].data.length > 50) {
+                tempChart.data.datasets[1].data.shift();
+            }
+            tempChart.update();
+
+
+            var b = parseFloat(message.bat);
+            batChart.data.datasets[0].data = [b, 100 - b];
+            batChart.update();
         }
     });
 </script>

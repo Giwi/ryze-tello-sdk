@@ -6,6 +6,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "bower": "(cd src/www/ && bower install)",
     "start": "node src/index.js",
     "mock": "node src/servers/mock_server.js",
     "doc": "jsdoc src -c .jsdoc.json",
