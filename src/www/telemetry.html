@@ -1,76 +1,80 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Tello Telemetry</title>
     <link rel="stylesheet" href="./bower_components/bootstrap/dist/css/bootstrap.min.css"/>
     <style>
         canvas {
-            min-height: 250px;
+            height: 550px;
+            width: 100%
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>Telemetry</h1>
-    <div class="card-columns">
+<main role="main">
+    <div class="container">
+        <h1>Telemetry</h1>
+        <div class="card-columns">
 
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Status</h5>
-                <div id="status" class="alert alert-info">Connecting</div>
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Status</h6>
+                    <div id="status" class="alert alert-info">Connecting</div>
+                </div>
             </div>
-        </div>
 
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Battery</h5>
-                <div class="progress">
-                    <div id="bat" class="progress-bar bg-success" role="progressbar" style="width: 100%"
-                         aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Battery</h6>
+                    <div class="progress">
+                        <div id="bat" class="progress-bar bg-success" role="progressbar" style="width: 100%"
+                             aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Height</h5>
-                <canvas id="height"></canvas>
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Height</h6>
+                    <canvas id="height" height="250px"></canvas>
+                </div>
             </div>
-        </div>
 
 
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Speed</h5>
-                <canvas id="speed"></canvas>
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Speed</h6>
+                    <canvas id="speed" height="250px"></canvas>
+                </div>
             </div>
-        </div>
 
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Temperatures</h5>
-                <canvas id="temp"></canvas>
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Temperatures</h6>
+                    <canvas id="temp" height="250px"></canvas>
+                </div>
             </div>
-        </div>
 
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Acceleration</h5>
-                <canvas id="acc"></canvas>
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Acceleration</h6>
+                    <canvas id="acc" height="250px"></canvas>
+                </div>
             </div>
-        </div>
 
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Rotations</h5>
-                <canvas id="rot"></canvas>
+            <div class="card">
+                <div class="card-body">
+                    <h65 class="card-title">Rotations</h65>
+                    <canvas id="rot" height="250px"></canvas>
+                </div>
             </div>
-        </div>
 
+        </div>
     </div>
-</div>
+</main>
 <script src="./bower_components/jquery/dist/jquery.min.js"></script>
 <script src="./bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
 <script src="./bower_components/moment/moment.js"></script>
@@ -92,6 +96,8 @@
     var accChart;
     var rotChart;
 
+    var maxTicks = 20;
+
     $(function () {
         "use strict";
         // for better performance - to avoid searching in DOM
@@ -110,6 +116,12 @@
             hover: {
                 animationDuration: 0, // duration of animations when hovering an item
             },
+            elements: {
+                point: {radius: 0}
+            },
+            legend: {
+                position: 'bottom'
+            },
             responsiveAnimationDuration: 0,
             animation: {
                 duration: 0
@@ -125,8 +137,11 @@
             }],
             xAxes: [{
                 type: 'time',
+                ticks: {
+                    maxRotation: 0
+                },
                 time: {
-                    min: moment()
+                    //   min: moment()
                 }
             }]
         };
@@ -312,7 +327,7 @@
             heightChart.data.datasets[1].data.push({t: time, y: parseFloat(message.tof)});
             heightChart.data.datasets[1].data.push({t: time, y: parseFloat(message.baro)});
             heightChart.data.datasets.forEach(d => {
-                if (d.data.length > 50) {
+                if (d.data.length > maxTicks) {
                     d.data.shift();
                 }
             });
@@ -321,7 +336,7 @@
             tempChart.data.datasets[0].data.push({t: time, y: parseFloat(message.templ)});
             tempChart.data.datasets[1].data.push({t: time, y: parseFloat(message.temph)});
             tempChart.data.datasets.forEach(d => {
-                if (d.data.length > 50) {
+                if (d.data.length > maxTicks) {
                     d.data.shift();
                 }
             });
@@ -331,7 +346,7 @@
             speedChart.data.datasets[1].data.push({t: time, y: parseFloat(message.vgy)});
             speedChart.data.datasets[1].data.push({t: time, y: parseFloat(message.vgmlaz)});
             speedChart.data.datasets.forEach(d => {
-                if (d.data.length > 50) {
+                if (d.data.length > maxTicks) {
                     d.data.shift();
                 }
             });
@@ -341,7 +356,7 @@
             accChart.data.datasets[1].data.push({t: time, y: parseFloat(message.agy)});
             accChart.data.datasets[1].data.push({t: time, y: parseFloat(message.agz)});
             accChart.data.datasets.forEach(d => {
-                if (d.data.length > 50) {
+                if (d.data.length > maxTicks) {
                     d.data.shift();
                 }
             });
@@ -352,7 +367,7 @@
             rotChart.data.datasets[1].data.push({t: time, y: parseFloat(message.roll)});
             rotChart.data.datasets[1].data.push({t: time, y: parseFloat(message.yaw)});
             rotChart.data.datasets.forEach(d => {
-                if (d.data.length > 50) {
+                if (d.data.length > maxTicks) {
                     d.data.shift();
                 }
             });

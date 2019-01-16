@@ -11,7 +11,7 @@ class TelloTelemetry {
 
     start() {
         return new Promise(resolve => {
-            this.timer = new Date().getSeconds();
+            this.timer = new Date().getTime();
             this.httpServer = http.createServer(() => {
             });
             this.httpServer.listen(this.webSocketsServerPort, () => {
@@ -51,9 +51,9 @@ class TelloTelemetry {
     }
 
     sendBatch(data) {
-        if( new Date().getSeconds() - this.timer>1){
+        if (new Date().getTime() - this.timer >= 500) {
             this.wsClients.forEach(c => c.sendUTF(data));
-            this.timer = new Date().getSeconds();
+            this.timer = new Date().getTime();
         }
     }
 }
