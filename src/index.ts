@@ -1,11 +1,6 @@
-/**
- * Class representing a socket connection.
- *
- * @class
- * @tutorial socket-tutorial
- */
-'use strict';
-const tello = require('./lib/tello');
+import { Tello } from "./lib/tello";
+
+const tello = new Tello();
 /*
 (async () => {
     // Start the engine
@@ -57,4 +52,4 @@ const tello = require('./lib/tello');
   //  await tello.stopStream();
     // And then shut down the engine
     await tello.wait(100000)
-})().then(() => tello.stop())
+})().then(() => tello.stop());

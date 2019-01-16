@@ -1,0 +1,20 @@
+/**
+ *
+ */
+export class OSDData {
+  h:string;
+  baro:string;
+  tof:string;
+  templ:string;
+  temph:string;
+  pitch:string;
+  roll:string;
+  yaw:string;
+  agx:string;
+  agy:string;
+  agz:string;
+  vgx:string;
+  vgy:string;
+  vgmlaz:string;
+  bat:string;
+}
