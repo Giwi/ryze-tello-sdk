@@ -6,15 +6,27 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node src/index.js",
-    "mock": "node src/mock_server.js",
-    "doc": "jsdoc src -c .jsdoc.json",
+    "bower": "(cd src/www/ && bower install)",
+    "build": "tsc -p .",
+    "dev": "'ts-node' src/index.ts",
+    "start": "yarn build && node dist/index.js",
+    "mock": "ts-node src/servers/mock_server.ts",
+    "doc": "yarn build && jsdoc dist -c .jsdoc.json",
     "gh": "yarn doc && gh-pages -d docs"
   },
-  "dependencies": {},
+  "dependencies": {
+    "opn": "^5.4.0",
+    "stack-trace": "^0.0.10",
+    "websocket": "^1.0.28"
+  },
   "devDependencies": {
+    "@types/node": "10.12.18",
+    "@types/opn": "^5.1.0",
+    "@types/stack-trace": "^0.0.29",
+    "@types/websocket": "^0.0.40",
     "gh-pages": "^2.0.1",
     "jsdoc": "^3.5.5",
-    "tui-jsdoc-template": "^1.2.2"
+    "tui-jsdoc-template": "^1.2.2",
+    "typescript": "^3.2.2"
   }
 }

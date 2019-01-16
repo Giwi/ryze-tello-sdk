@@ -11,6 +11,7 @@ ryze-tello-sdk.iml
 *-lock.*
 docs
 bin
+dist
 # Runtime data
 pids
 *.pid

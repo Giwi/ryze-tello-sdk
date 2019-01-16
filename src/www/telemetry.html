@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Tello Telemetry</title>
+    <link rel="stylesheet" href="./bower_components/bootstrap/dist/css/bootstrap.min.css"/>
+    <style>
+        canvas {
+            height: 550px;
+            width: 100%
+        }
+    </style>
+</head>
+<body>
+<main role="main">
+    <div class="container">
+        <h1>Telemetry</h1>
+        <div class="card-columns">
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Status</h6>
+                    <div id="status" class="alert alert-info">Connecting</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Battery</h6>
+                    <div class="progress">
+                        <div id="bat" class="progress-bar bg-success" role="progressbar" style="width: 100%"
+                             aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Height</h6>
+                    <canvas id="height" height="250px"></canvas>
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Speed</h6>
+                    <canvas id="speed" height="250px"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Temperatures</h6>
+                    <canvas id="temp" height="250px"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Acceleration</h6>
+                    <canvas id="acc" height="250px"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h65 class="card-title">Rotations</h65>
+                    <canvas id="rot" height="250px"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+<script src="./bower_components/jquery/dist/jquery.min.js"></script>
+<script src="./bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="./bower_components/moment/moment.js"></script>
+<script src="./bower_components/chart.js/dist/Chart.min.js"></script>
+<script language="JavaScript">
+    var chartColors = {
+        red: 'rgb(255, 99, 132)',
+        orange: 'rgb(255, 159, 64)',
+        yellow: 'rgb(255, 205, 86)',
+        green: 'rgb(75, 192, 192)',
+        blue: 'rgb(54, 162, 235)',
+        purple: 'rgb(153, 102, 255)',
+        grey: 'rgb(201, 203, 207)'
+    };
+
+    var heightChart;
+    var tempChart;
+    var speedChart;
+    var accChart;
+    var rotChart;
+
+    var maxTicks = 20;
+
+    $(function () {
+        "use strict";
+        // for better performance - to avoid searching in DOM
+        var status = $('#status');
+        // if user is running mozilla then use it's built-in WebSocket
+        window.WebSocket = window.WebSocket || window.MozWebSocket;
+        // if browser doesn't support WebSocket, just show
+        // some notification and exit
+        if (!window.WebSocket) {
+            status.html($('<p>', {text: 'Sorry, but your browser doesn\'t support WebSocket.'}));
+            return;
+        }
+        // open connection
+        var connection = new WebSocket('ws://127.0.0.1:1338');
+        var options = {
+            hover: {
+                animationDuration: 0, // duration of animations when hovering an item
+            },
+            elements: {
+                point: {radius: 0}
+            },
+            legend: {
+                position: 'bottom'
+            },
+            responsiveAnimationDuration: 0,
+            animation: {
+                duration: 0
+            },
+        };
+
+        var timeLineOpts = {...options};
+        timeLineOpts.scales = {
+            yAxes: [{
+                scaleLabel: {
+                    display: true,
+                }
+            }],
+            xAxes: [{
+                type: 'time',
+                ticks: {
+                    maxRotation: 0
+                },
+                time: {
+                    //   min: moment()
+                }
+            }]
+        };
+        var heightOptions = {...timeLineOpts};
+        heightOptions.scales.yAxes[0].scaleLabel.labelString = 'cm';
+        var tempOptions = {...timeLineOpts};
+        tempOptions.scales.yAxes[0].scaleLabel.labelString = '°C';
+        var speedOptions = {...timeLineOpts};
+        speedOptions.scales.yAxes[0].scaleLabel.labelString = 'cm/s';
+        var accOptions = {...timeLineOpts};
+        accOptions.scales.yAxes[0].scaleLabel.labelString = '0.001g';
+        var rotOptions = {...timeLineOpts};
+        rotOptions.scales.yAxes[0].scaleLabel.labelString = '°';
+
+        connection.onopen = function () {
+            status.html('Connected');
+            heightChart = new Chart($('#height'), {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            data: [],
+                            label: 'Height',
+                            fill: false,
+                            backgroundColor: chartColors.blue,
+                            borderColor: chartColors.blue
+                        },
+                        {
+                            data: [],
+                            label: 'To floor distance',
+                            fill: false,
+                            backgroundColor: chartColors.red,
+                            borderColor: chartColors.red
+                        },
+                        {
+                            data: [],
+                            label: 'Barometer',
+                            fill: false,
+                            backgroundColor: chartColors.grey,
+                            borderColor: chartColors.grey
+                        }
+                    ]
+                },
+                options: heightOptions
+            });
+
+            tempChart = new Chart($('#temp'), {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            data: [],
+                            label: 'Min temperature',
+                            fill: false,
+                            backgroundColor: chartColors.blue,
+                            borderColor: chartColors.blue
+                        },
+                        {
+                            data: [],
+                            label: 'Max temperature',
+                            fill: false,
+                            backgroundColor: chartColors.red,
+                            borderColor: chartColors.red
+                        }
+                    ]
+                },
+                options: tempOptions
+            });
+
+            speedChart = new Chart($('#speed'), {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            data: [],
+                            label: 'Speed x',
+                            fill: false,
+                            backgroundColor: chartColors.blue,
+                            borderColor: chartColors.blue
+                        },
+                        {
+                            data: [],
+                            label: 'Speed y',
+                            fill: false,
+                            backgroundColor: chartColors.red,
+                            borderColor: chartColors.red
+                        },
+                        {
+                            data: [],
+                            label: 'Speed z',
+                            fill: false,
+                            backgroundColor: chartColors.grey,
+                            borderColor: chartColors.grey
+                        }
+                    ]
+                },
+                options: speedOptions
+            });
+
+            accChart = new Chart($('#acc'), {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            data: [],
+                            label: 'Acceleration x',
+                            fill: false,
+                            backgroundColor: chartColors.blue,
+                            borderColor: chartColors.blue
+                        },
+                        {
+                            data: [],
+                            label: 'Acceleration y',
+                            fill: false,
+                            backgroundColor: chartColors.red,
+                            borderColor: chartColors.red
+                        },
+                        {
+                            data: [],
+                            label: 'Acceleration z',
+                            fill: false,
+                            backgroundColor: chartColors.grey,
+                            borderColor: chartColors.grey
+                        }
+                    ]
+                },
+                options: accOptions
+            });
+
+            rotChart = new Chart($('#rot'), {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            data: [],
+                            label: 'Attitude pitch',
+                            fill: false,
+                            backgroundColor: chartColors.blue,
+                            borderColor: chartColors.blue
+                        },
+                        {
+                            data: [],
+                            label: 'Attitude roll',
+                            fill: false,
+                            backgroundColor: chartColors.red,
+                            borderColor: chartColors.red
+                        },
+                        {
+                            data: [],
+                            label: 'Attitude yaw',
+                            fill: false,
+                            backgroundColor: chartColors.grey,
+                            borderColor: chartColors.grey
+                        }
+                    ]
+                },
+                options: rotOptions
+            });
+        };
+
+        connection.onerror = function (error) {
+            // just in there were some problems with connection...
+            console.error(error);
+            status.html($('<p>', {
+                text: 'Sorry, but there\'s some problem with your '
+                    + 'connection or the server is down.'
+            }));
+        };
+
+        connection.onmessage = function (message) {
+            telemetry(JSON.parse(message.data));
+        };
+
+        setInterval(function () {
+            if (connection.readyState !== 1) {
+                status.text('Error');
+            }
+        }, 3000);
+
+        function telemetry(message) {
+            var time = moment();
+            heightChart.data.datasets[0].data.push({t: time, y: parseFloat(message.h)});
+            heightChart.data.datasets[1].data.push({t: time, y: parseFloat(message.tof)});
+            heightChart.data.datasets[1].data.push({t: time, y: parseFloat(message.baro)});
+            heightChart.data.datasets.forEach(d => {
+                if (d.data.length > maxTicks) {
+                    d.data.shift();
+                }
+            });
+            heightChart.update();
+
+            tempChart.data.datasets[0].data.push({t: time, y: parseFloat(message.templ)});
+            tempChart.data.datasets[1].data.push({t: time, y: parseFloat(message.temph)});
+            tempChart.data.datasets.forEach(d => {
+                if (d.data.length > maxTicks) {
+                    d.data.shift();
+                }
+            });
+            tempChart.update();
+
+            speedChart.data.datasets[0].data.push({t: time, y: parseFloat(message.vgx)});
+            speedChart.data.datasets[1].data.push({t: time, y: parseFloat(message.vgy)});
+            speedChart.data.datasets[1].data.push({t: time, y: parseFloat(message.vgmlaz)});
+            speedChart.data.datasets.forEach(d => {
+                if (d.data.length > maxTicks) {
+                    d.data.shift();
+                }
+            });
+            speedChart.update();
+
+            accChart.data.datasets[0].data.push({t: time, y: parseFloat(message.agx)});
+            accChart.data.datasets[1].data.push({t: time, y: parseFloat(message.agy)});
+            accChart.data.datasets[1].data.push({t: time, y: parseFloat(message.agz)});
+            accChart.data.datasets.forEach(d => {
+                if (d.data.length > maxTicks) {
+                    d.data.shift();
+                }
+            });
+            accChart.update();
+
+
+            rotChart.data.datasets[0].data.push({t: time, y: parseFloat(message.pitch)});
+            rotChart.data.datasets[1].data.push({t: time, y: parseFloat(message.roll)});
+            rotChart.data.datasets[1].data.push({t: time, y: parseFloat(message.yaw)});
+            rotChart.data.datasets.forEach(d => {
+                if (d.data.length > maxTicks) {
+                    d.data.shift();
+                }
+            });
+            rotChart.update();
+
+
+            var b = parseFloat(message.bat);
+            var bat = $('#bat').html(b + '%').attr('aria-valuenow', b).css('width', b + '%').removeClass('bg-success');
+            if (b > 80) {
+                bat.addClass('bg-success')
+            } else if (b > 20) {
+                bat.addClass('bg-warning')
+            } else {
+                bat.addClass('bg-danger')
+            }
+        }
+    });
+</script>
+</body>
+</html>
