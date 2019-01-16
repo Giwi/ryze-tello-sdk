@@ -1,8 +1,10 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Home | Ryze Tello NodeJS lib</title>
+    <title>Source: lib/logger.js | Ryze Tello NodeJS lib</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -53,150 +55,110 @@
 
 
     
-
-
-
-
-
-
-
-
-
-    
-
-
     <section>
-        <article class="readme"><h1>Ryze Tello commands</h1><p>NodeJS utility for the <a href="https://www.ryzerobotics.com/tello">Ryze Tello Drone</a></p>
-<p>Video stream is supported, but you need mplayer.</p>
-<h2>Usage</h2><p>Connect to the Tello's Wifi</p>
-<pre class="prettyprint source lang-javascript"><code>'use strict';
-const tello = require('./lib/tello');
-
-tello.start()
-    .then(() => tello.takeoff())
-    .then(() => tello.forward(50))
-    .then(() => tello.rotateCCW(360))
-    .then(() => {
-        return new Promise(resolve =>
-            tello.get('h').then(r => {
-                console.log('height', r.value);
-                resolve()
-            }));
-    })
-    .then(() => tello.backward(50))
-    .then(() => tello.land())
-    .then(() => tello.stop());</code></pre><p>or </p>
-<pre class="prettyprint source lang-javascript"><code>const tello = require('./lib/tello');
-
-'use strict';
-(async () => {
-    await tello.start();
-    await tello.startStream();
-    await tello.wait(10000);
-    await tello.takeoff();
-    console.log('battery', (await tello.get('bat')).value, '%');
-    await tello.up(50);
-    await tello.flip('f');
-    await tello.forward(50);
-    console.log('height', (await tello.get('h')).value, 'cm');
-    await tello.backward(100);
-    await tello.land();
-})().then(() => tello.stop());</code></pre><h2>Tello flight vars</h2><table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Unit</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>h</code></td>
-<td>cm</td>
-<td>height</td>
-</tr>
-<tr>
-<td><code>baro</code></td>
-<td>cm</td>
-<td>barometer</td>
-</tr>
-<tr>
-<td><code>tof</code></td>
-<td>cm</td>
-<td>to floor distance</td>
-</tr>
-<tr>
-<td><code>templ</code></td>
-<td>°C</td>
-<td>min temperature</td>
-</tr>
-<tr>
-<td><code>temph</code></td>
-<td>°C</td>
-<td>max temperature</td>
-</tr>
-<tr>
-<td><code>pitch</code></td>
-<td>°</td>
-<td>attitude pitch</td>
-</tr>
-<tr>
-<td><code>roll</code></td>
-<td>°</td>
-<td>attitude roll</td>
-</tr>
-<tr>
-<td><code>yaw</code></td>
-<td>°</td>
-<td>attitude yaw</td>
-</tr>
-<tr>
-<td><code>agx</code></td>
-<td>0.001g</td>
-<td>acceleration x</td>
-</tr>
-<tr>
-<td><code>agy</code></td>
-<td>0.001g</td>
-<td>acceleration y</td>
-</tr>
-<tr>
-<td><code>agz</code></td>
-<td>0.001g</td>
-<td>acceleration z</td>
-</tr>
-<tr>
-<td><code>vgx</code></td>
-<td>cm/s</td>
-<td>speed x</td>
-</tr>
-<tr>
-<td><code>vgy</code></td>
-<td>cm/s</td>
-<td>speed y</td>
-</tr>
-<tr>
-<td><code>vgmlaz</code></td>
-<td>cm/s</td>
-<td>speed z</td>
-</tr>
-<tr>
-<td><code>bat</code></td>
-<td>%</td>
-<td>battery</td>
-</tr>
-</tbody>
-</table>
-<h2>RoadMap</h2><ul>
-<li>[ ] Save video on the file system</li>
-<li>[ ] Take pictures</li>
-<li>[ ] RealTime remote control with web video stream</li>
-<li>[ ] Raspberry setup</li>
-<li>[ ] GamePad support on Raspberry</li>
-</ul></article>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ *
+ */
+const util = require("util");
+const stack_trace_1 = require("stack-trace");
+/**
+ *
+ */
+class Logger {
+    /**
+     *
+     * @param message
+     * @return {any[]}
+     */
+    static stringify(...message) {
+        const messages = [];
+        if (message) {
+            message.forEach(m => {
+                if (m instanceof Object) {
+                    try {
+                        messages.push(JSON.stringify(m));
+                    }
+                    catch (e) {
+                        messages.push(util.inspect(m, { colors: true }));
+                    }
+                }
+                else {
+                    messages.push(m);
+                }
+            });
+        }
+        return messages;
+    }
+    /**
+     *
+     * @param message
+     */
+    static fatal(...message) {
+        const trace = stack_trace_1.get();
+        console.error(new Date(), '[FATAL]', `${trace[1].getFileName()}@${trace[1].getFunctionName()}:${trace[1].getLineNumber()}`);
+        console.error(new Date(), '[FATAL]', Logger.stringify(message).join(' '));
+        console.trace(new Date(), '[FATAL]', Logger.stringify(message).join(' '));
+        process.exit(1);
+    }
+    /**
+     *
+     * @param message
+     */
+    static error(...message) {
+        console.error(new Date(), '[ERROR]', message.join(' '));
+    }
+    /**
+     *
+     * @param message
+     */
+    static warning(...message) {
+        console.warn(new Date(), '[WARNING]', message.join(' '));
+    }
+    /**
+     *
+     * @param message
+     */
+    static info(...message) {
+        console.log(new Date(), '[INFO]', message.join(' '));
+    }
+    /**
+     *
+     * @param message
+     */
+    static success(...message) {
+        console.log(new Date(), '[SUCCESS]', message.join(' '));
+    }
+    /**
+     *
+     * @param message
+     */
+    static secondary(...message) {
+        console.log(new Date(), message.join(' '));
+    }
+    /**
+     *
+     * @param message
+     */
+    static primary(...message) {
+        console.log(new Date(), message.join(' '));
+    }
+    /**
+     *
+     * @param message
+     */
+    static debug(...message) {
+        const trace = stack_trace_1.get();
+        console.log(new Date(), '[DEBUG]', `${trace[1].getFileName()}@${trace[1].getFunctionName()}:${trace[1].getLineNumber()}`);
+        console.log(new Date(), '       ', Logger.stringify(message).join(' '));
+    }
+}
+exports.Logger = Logger;
+//# sourceMappingURL=logger.js.map</code></pre>
+        </article>
     </section>
-
-
 
 
 
@@ -213,7 +175,7 @@ tello.start()
 <script src="scripts/linenumber.js"></script>
 
     <script>
-        var id = 'package:undefined_sub'.replace(/"/g, '_');
+        var id = '_sub'.replace(/"/g, '_');
         var selectedApi = document.getElementById(id); // do not use jquery selector
         var $selectedApi = $(selectedApi);
 

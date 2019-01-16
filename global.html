@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Home | Ryze Tello NodeJS lib</title>
+    <title>Global | Ryze Tello NodeJS lib</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -52,151 +52,109 @@
 
 
 
+
+<section>
+
+<header>
+    
+        <h2>Global</h2>
+    
+</header>
+
+<article>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        <dl>
+            
+
+<dt>
+<h4 class="name" id="util">
+    <span class="type-signature"><span class="icon green">constant</span> </span>util<span class="type-signature"></span>
+    
+    <div class="container-source members">
+        <code><a href="lib_logger.js.html">lib/logger.js</a></code>,
+        <code><a href="lib_logger.js.html#line6">line 6</a></code>
+    </div>
+    
+</h4>
+
+
+</dt>
+<dd>
+    
+
+    <!--
+    
+    -->
+
     
 
 
+<dl class="details">
 
+    
 
+    
 
+    
 
+    
 
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
 
 
     
 
+    
+</dd>
 
-    <section>
-        <article class="readme"><h1>Ryze Tello commands</h1><p>NodeJS utility for the <a href="https://www.ryzerobotics.com/tello">Ryze Tello Drone</a></p>
-<p>Video stream is supported, but you need mplayer.</p>
-<h2>Usage</h2><p>Connect to the Tello's Wifi</p>
-<pre class="prettyprint source lang-javascript"><code>'use strict';
-const tello = require('./lib/tello');
+        </dl>
+    
 
-tello.start()
-    .then(() => tello.takeoff())
-    .then(() => tello.forward(50))
-    .then(() => tello.rotateCCW(360))
-    .then(() => {
-        return new Promise(resolve =>
-            tello.get('h').then(r => {
-                console.log('height', r.value);
-                resolve()
-            }));
-    })
-    .then(() => tello.backward(50))
-    .then(() => tello.land())
-    .then(() => tello.stop());</code></pre><p>or </p>
-<pre class="prettyprint source lang-javascript"><code>const tello = require('./lib/tello');
+    
 
-'use strict';
-(async () => {
-    await tello.start();
-    await tello.startStream();
-    await tello.wait(10000);
-    await tello.takeoff();
-    console.log('battery', (await tello.get('bat')).value, '%');
-    await tello.up(50);
-    await tello.flip('f');
-    await tello.forward(50);
-    console.log('height', (await tello.get('h')).value, 'cm');
-    await tello.backward(100);
-    await tello.land();
-})().then(() => tello.stop());</code></pre><h2>Tello flight vars</h2><table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Unit</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>h</code></td>
-<td>cm</td>
-<td>height</td>
-</tr>
-<tr>
-<td><code>baro</code></td>
-<td>cm</td>
-<td>barometer</td>
-</tr>
-<tr>
-<td><code>tof</code></td>
-<td>cm</td>
-<td>to floor distance</td>
-</tr>
-<tr>
-<td><code>templ</code></td>
-<td>°C</td>
-<td>min temperature</td>
-</tr>
-<tr>
-<td><code>temph</code></td>
-<td>°C</td>
-<td>max temperature</td>
-</tr>
-<tr>
-<td><code>pitch</code></td>
-<td>°</td>
-<td>attitude pitch</td>
-</tr>
-<tr>
-<td><code>roll</code></td>
-<td>°</td>
-<td>attitude roll</td>
-</tr>
-<tr>
-<td><code>yaw</code></td>
-<td>°</td>
-<td>attitude yaw</td>
-</tr>
-<tr>
-<td><code>agx</code></td>
-<td>0.001g</td>
-<td>acceleration x</td>
-</tr>
-<tr>
-<td><code>agy</code></td>
-<td>0.001g</td>
-<td>acceleration y</td>
-</tr>
-<tr>
-<td><code>agz</code></td>
-<td>0.001g</td>
-<td>acceleration z</td>
-</tr>
-<tr>
-<td><code>vgx</code></td>
-<td>cm/s</td>
-<td>speed x</td>
-</tr>
-<tr>
-<td><code>vgy</code></td>
-<td>cm/s</td>
-<td>speed y</td>
-</tr>
-<tr>
-<td><code>vgmlaz</code></td>
-<td>cm/s</td>
-<td>speed z</td>
-</tr>
-<tr>
-<td><code>bat</code></td>
-<td>%</td>
-<td>battery</td>
-</tr>
-</tbody>
-</table>
-<h2>RoadMap</h2><ul>
-<li>[ ] Save video on the file system</li>
-<li>[ ] Take pictures</li>
-<li>[ ] RealTime remote control with web video stream</li>
-<li>[ ] Raspberry setup</li>
-<li>[ ] GamePad support on Raspberry</li>
-</ul></article>
-    </section>
+    
 
+    
+</article>
 
+</section>
 
 
 
@@ -213,7 +171,7 @@ tello.start()
 <script src="scripts/linenumber.js"></script>
 
     <script>
-        var id = 'package:undefined_sub'.replace(/"/g, '_');
+        var id = '_sub'.replace(/"/g, '_');
         var selectedApi = document.getElementById(id); // do not use jquery selector
         var $selectedApi = $(selectedApi);
 
