@@ -6,7 +6,9 @@ Video stream is supported, but you need mplayer.
 
 ## Usage
 
-Connect to the Tello's Wifi
+Connect to the Tello's Wifi.
+
+    yarn start
 
 ```javascript
 'use strict';
