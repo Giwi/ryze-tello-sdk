@@ -7,12 +7,13 @@
   "private": true,
   "scripts": {
     "bower": "(cd src/www/ && bower install)",
-    "build": "tsc -p .",
+    "build": "tsc -p . && yarn html",
     "dev": "'ts-node' src/index.ts",
     "start": "yarn build && node dist/index.js",
     "mock": "ts-node src/servers/mock_server.ts",
     "doc": "yarn build && jsdoc dist -c .jsdoc.json",
-    "gh": "yarn doc && gh-pages -d docs"
+    "gh": "yarn doc && gh-pages -d docs",
+    "html": "cp -r src/www/* dist/www/."
   },
   "dependencies": {
     "opn": "^5.4.0",
