@@ -34,18 +34,32 @@ or
 const tello = require('./lib/tello');
 
 'use strict';
-(async () => {
-    await tello.start();
-    await tello.startStream();
-    await tello.wait(10000);
-    await tello.takeoff();
-    console.log('battery', (await tello.get('bat')).value, '%');
-    await tello.up(50);
-    await tello.flip('f');
-    await tello.forward(50);
-    console.log('height', (await tello.get('h')).value, 'cm');
-    await tello.backward(100);
-    await tello.land();
+
+(async() => {
+  // Start the engine
+  await tello.start();
+  await tello.startStream();
+  await tello.startTelemetry();
+  await tello.takeoff();
+  // Read the battery status
+  console.log('battery', (await tello.get('bat')).value, '%');
+  // Go up
+  await tello.up(50);
+  // Perform a forward flip
+  await tello.flip('f');
+  // Go forward
+  await tello.forward(50);
+  await tello.right(20);
+  // Read the height
+  console.log('height', (await tello.get('h')).value, 'cm');
+  // Go backward
+  await tello.backward(100);
+  await tello.rotateCW(360);
+  // Finally land
+  await tello.land();
+  await tello.stopTelemetry();
+  await tello.stopStream();
+  // And then shut down the engine
 })().then(() => tello.stop());
 ```
 
@@ -66,7 +80,7 @@ const tello = require('./lib/tello');
 | `agz` | 0.001g | acceleration z |
 | `vgx` | cm/s | speed x |
 | `vgy` | cm/s | speed y |
-| `vgmlaz` | cm/s | speed z | 
+| `vgz` | cm/s | speed z | 
 | `bat` | % | battery |
 
 ## RoadMap

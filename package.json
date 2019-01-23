@@ -13,7 +13,7 @@
     "mock": "ts-node src/servers/mock_server.ts",
     "doc": "yarn build && jsdoc dist -c .jsdoc.json",
     "gh": "yarn doc && gh-pages -d docs",
-    "html": "cp -r src/www/* dist/www/."
+    "html": "cp-cli 'src/www/' 'dist/www/'"
   },
   "dependencies": {
     "opn": "^5.4.0",
@@ -25,6 +25,7 @@
     "@types/opn": "^5.1.0",
     "@types/stack-trace": "^0.0.29",
     "@types/websocket": "^0.0.40",
+    "cp-cli": "^1.1.2",
     "gh-pages": "^2.0.1",
     "jsdoc": "^3.5.5",
     "tui-jsdoc-template": "^1.2.2",

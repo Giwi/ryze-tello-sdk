@@ -15,6 +15,6 @@ export class OSDData {
   agz:string;
   vgx:string;
   vgy:string;
-  vgmlaz:string;
+  vgz:string;
   bat:string;
 }

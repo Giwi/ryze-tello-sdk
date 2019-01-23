@@ -325,7 +325,7 @@
             var time = moment();
             heightChart.data.datasets[0].data.push({t: time, y: parseFloat(message.h)});
             heightChart.data.datasets[1].data.push({t: time, y: parseFloat(message.tof)});
-            heightChart.data.datasets[1].data.push({t: time, y: parseFloat(message.baro)});
+            heightChart.data.datasets[2].data.push({t: time, y: parseFloat(message.baro)});
             heightChart.data.datasets.forEach(d => {
                 if (d.data.length > maxTicks) {
                     d.data.shift();
@@ -344,7 +344,7 @@
 
             speedChart.data.datasets[0].data.push({t: time, y: parseFloat(message.vgx)});
             speedChart.data.datasets[1].data.push({t: time, y: parseFloat(message.vgy)});
-            speedChart.data.datasets[1].data.push({t: time, y: parseFloat(message.vgmlaz)});
+            speedChart.data.datasets[2].data.push({t: time, y: - parseFloat(message.vgz)});
             speedChart.data.datasets.forEach(d => {
                 if (d.data.length > maxTicks) {
                     d.data.shift();
@@ -354,7 +354,7 @@
 
             accChart.data.datasets[0].data.push({t: time, y: parseFloat(message.agx)});
             accChart.data.datasets[1].data.push({t: time, y: parseFloat(message.agy)});
-            accChart.data.datasets[1].data.push({t: time, y: parseFloat(message.agz)});
+            accChart.data.datasets[2].data.push({t: time, y: parseFloat(message.agz)});
             accChart.data.datasets.forEach(d => {
                 if (d.data.length > maxTicks) {
                     d.data.shift();
@@ -362,17 +362,15 @@
             });
             accChart.update();
 
-
             rotChart.data.datasets[0].data.push({t: time, y: parseFloat(message.pitch)});
             rotChart.data.datasets[1].data.push({t: time, y: parseFloat(message.roll)});
-            rotChart.data.datasets[1].data.push({t: time, y: parseFloat(message.yaw)});
+            rotChart.data.datasets[2].data.push({t: time, y: parseFloat(message.yaw)});
             rotChart.data.datasets.forEach(d => {
                 if (d.data.length > maxTicks) {
                     d.data.shift();
                 }
             });
             rotChart.update();
-
 
             var b = parseFloat(message.bat);
             var bat = $('#bat').html(b + '%').attr('aria-valuenow', b).css('width', b + '%').removeClass('bg-success');

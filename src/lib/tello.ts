@@ -5,8 +5,8 @@ import { TelloWebServer } from "../servers/webServer";
 import { TelloTelemetry } from "../servers/telemetry";
 import { OSDData } from "../model/osdData";
 import { createSocket, Socket } from "dgram";
-import opn = require("opn");
 import { AddressInfo } from "net";
+import opn = require("opn");
 
 /**
  *
@@ -79,9 +79,9 @@ export class Tello {
           "args": [ '-gui', '-nolirc', '-fps', '35', '-really-quiet', '-' ]
         };
         this.h264encoder = spawn(this.h264encoder_spawn.command, this.h264encoder_spawn.args);
-        this.h264encoder.on('close', (code) => {
+      /*  this.h264encoder.on('close', (code) => {
           Logger.error('[Tello]', `child process exited with code ${code}`);
-        });
+        });*/
         this.h264encoder.stderr.on('data', data => {
           Logger.error('[Tello]', 'mplayer error', data.toString());
         });
@@ -299,6 +299,7 @@ export class Tello {
    * @return {Promise<Tello>}
    */
   start(): Promise<Tello> {
+    this.myEmitter.setMaxListeners(20);
     return new Promise<Tello>(resolve => {
       this.UDPClient = createSocket('udp4');
       this.UDPServer = createSocket('udp4');
@@ -366,7 +367,7 @@ export class Tello {
       await this.stopTelemetry();
     }
     Logger.info(new Date(), '[Tello]', 'Goodbye !');
-    process.exit();
+    process.exit(0);
   }
 
   /**
