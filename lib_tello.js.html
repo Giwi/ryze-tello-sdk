@@ -141,9 +141,9 @@ class Tello {
                     "args": ['-gui', '-nolirc', '-fps', '35', '-really-quiet', '-']
                 };
                 this.h264encoder = child_process_1.spawn(this.h264encoder_spawn.command, this.h264encoder_spawn.args);
-                this.h264encoder.on('close', (code) => {
-                    logger_1.Logger.error('[Tello]', `child process exited with code ${code}`);
-                });
+                /*  this.h264encoder.on('close', (code) => {
+                    Logger.error('[Tello]', `child process exited with code ${code}`);
+                  });*/
                 this.h264encoder.stderr.on('data', data => {
                     logger_1.Logger.error('[Tello]', 'mplayer error', data.toString());
                 });
@@ -348,6 +348,7 @@ class Tello {
      * @return {Promise&lt;Tello>}
      */
     start() {
+        this.myEmitter.setMaxListeners(20);
         return new Promise(resolve => {
             this.UDPClient = dgram_1.createSocket('udp4');
             this.UDPServer = dgram_1.createSocket('udp4');
@@ -413,7 +414,7 @@ class Tello {
                 yield this.stopTelemetry();
             }
             logger_1.Logger.info(new Date(), '[Tello]', 'Goodbye !');
-            process.exit();
+            process.exit(0);
         });
     }
     /**

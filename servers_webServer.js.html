@@ -74,7 +74,7 @@ class TelloWebServer {
     start() {
         return new Promise(resolve => {
             this.httpServer = http_1.createServer(function (request, response) {
-                const filePath = __dirname + '/../www/' + request.url;
+                const filePath = __dirname + '/../www' + request.url;
                 const extname = path.extname(filePath);
                 logger_1.Logger.info('[Web Server]', 'serving', filePath);
                 let contentType = 'text/html';
