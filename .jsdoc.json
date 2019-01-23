@@ -5,7 +5,7 @@
   ],
   "source": {
     "includePattern": ".+\\.js(doc|x)?$",
-    "excludePattern": "(^|\\/|\\\\)_"
+    "excludePattern": "bower_components|(^|\\/|\\\\)_"
   },
   "sourceType": "module",
   "tags": {
