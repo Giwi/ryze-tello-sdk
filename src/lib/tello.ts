@@ -1,12 +1,12 @@
-import { spawn } from "child_process";
-import { EventEmitter } from "events";
-import { Logger } from "./logger";
-import { TelloWebServer } from "../servers/webServer";
-import { TelloTelemetry } from "../servers/telemetry";
-import { OSDData } from "../model/osdData";
-import { createSocket, Socket } from "dgram";
-import { AddressInfo } from "net";
-import opn = require("opn");
+import { spawn } from 'child_process';
+import { EventEmitter } from 'events';
+import { Logger } from './logger';
+import { TelloWebServer } from '../servers/webServer';
+import { TelloTelemetry } from '../servers/telemetry';
+import { OSDData } from '../model/osdData';
+import { createSocket, Socket } from 'dgram';
+import { AddressInfo } from 'net';
+import opn = require('opn');
 
 /**
  *
@@ -75,8 +75,8 @@ export class Tello {
       this.sendCmd('streamon').then(() => {
         this.tello_video = createSocket('udp4');
         this.h264encoder_spawn = {
-          "command": 'mplayer',
-          "args": [ '-gui', '-nolirc', '-fps', '35', '-really-quiet', '-' ]
+          'command': 'mplayer',
+          'args': [ '-gui', '-nolirc', '-fps', '35', '-really-quiet', '-' ]
         };
         this.h264encoder = spawn(this.h264encoder_spawn.command, this.h264encoder_spawn.args);
       /*  this.h264encoder.on('close', (code) => {
@@ -125,13 +125,15 @@ export class Tello {
 
   /**
    *
-   * @return {Promise<Tello>}
+   * @param {boolean} withWarp10
+   * @param {{url: string; writeToken: string}} warp10Params
+   * @returns {Promise<Tello>}
    */
-  startTelemetry(): Promise<Tello> {
+  startTelemetry(withWarp10: boolean = false, warp10Params?: { url: string; writeToken: string }): Promise<Tello> {
     return new Promise<Tello>(resolve => {
       if(!this.isMock) {
         this.telloWebServer.start().then(() => {
-          this.runTelemetry().then(() => resolve(this));
+          this.runTelemetry(withWarp10,warp10Params).then(() => resolve(this));
         })
       }
     });
@@ -139,11 +141,13 @@ export class Tello {
 
   /**
    *
-   * @return {Promise<Tello>}
+   * @param {boolean} withWarp10
+   * @param {{url: string; writeToken: string}} warp10Params
+   * @returns {Promise<Tello>}
    */
-  private runTelemetry(): Promise<Tello> {
+  private runTelemetry(withWarp10: boolean = false, warp10Params?: { url: string; writeToken: string }): Promise<Tello> {
     return new Promise<Tello>(resolve => {
-      this.telloTelemetry.start().then(() => {
+      this.telloTelemetry.start(withWarp10, warp10Params).then(() => {
         this.hasTelemetry = true;
         opn('http://127.0.0.1:3000/telemetry.html').then(() => {
           Logger.info('[Tello]', `Telemetry started`);
@@ -281,8 +285,7 @@ export class Tello {
    * @return {Promise<Tello>}
    */
   curve(x1 = 20, y1 = 20, z1 = 20, x2 = 60, y2 = 40, z2 = 0, speed = 60): Promise<Tello> {
-    return this.sendCmd('curve ' + x1 + ' ' + y1 + ' ' + z1 + ' ' + x2 + ' ' + y2 + ' ' + z2 + ' ' + speed + ' ');
-
+    return this.sendCmd(`curve ${x1} ${y1} ${z1} ${x2} ${y2} ${z2} ${speed} `);
   }
 
   /**
@@ -291,7 +294,7 @@ export class Tello {
    * @return {Promise<Tello>}
    */
   forward(distance = 50): Promise<Tello> {
-    return this.sendCmd('forward ' + distance);
+    return this.sendCmd(`forward ${distance}`);
   }
 
   /**
@@ -330,7 +333,7 @@ export class Tello {
    * @return {Promise<Tello>}
    */
   right(distance = 50): Promise<Tello> {
-    return this.sendCmd('right ' + distance);
+    return this.sendCmd(`right ${distance}`);
   }
 
   /**
@@ -339,7 +342,7 @@ export class Tello {
    * @return {Promise<Tello>}
    */
   down(height = 50): Promise<Tello> {
-    return this.sendCmd('down ' + height);
+    return this.sendCmd(`down ${height}`);
   }
 
   /**
@@ -348,7 +351,7 @@ export class Tello {
    * @return {Promise<Tello>}
    */
   speed(speed = 50): Promise<Tello> {
-    return this.sendCmd('speed ' + speed);
+    return this.sendCmd(`speed ${speed}`);
   }
 
   /**
@@ -376,7 +379,7 @@ export class Tello {
    * @return {Promise<Tello>}
    */
   left(distance = 50): Promise<Tello> {
-    return this.sendCmd('left ' + distance);
+    return this.sendCmd(`left ${distance}`);
   }
 
   /**
@@ -385,7 +388,7 @@ export class Tello {
    * @return {Promise<Tello>}
    */
   rotateCW(angle = 90): Promise<Tello> {
-    return this.sendCmd('cw ' + angle);
+    return this.sendCmd(`cw ${angle}`);
   }
 
   /**
@@ -402,7 +405,7 @@ export class Tello {
    * @return {Promise<Tello>}
    */
   backward(distance = 50): Promise<Tello> {
-    return this.sendCmd('back ' + distance);
+    return this.sendCmd(`back ${distance}`);
   }
 
   /**
@@ -411,7 +414,7 @@ export class Tello {
    * @return {Promise<Tello>}
    */
   rotateCCW(angle = 90): Promise<Tello> {
-    return this.sendCmd('ccw ' + angle);
+    return this.sendCmd(`ccw ${angle}`);
   }
 
   /**
@@ -420,7 +423,7 @@ export class Tello {
    * @return {Promise<Tello>}
    */
   up(height = 50): Promise<Tello> {
-    return this.sendCmd('up ' + height);
+    return this.sendCmd(`up ${height}`);
   }
 
   /**
@@ -429,7 +432,7 @@ export class Tello {
    * @return {Promise<Tello>}
    */
   flip(orientation = 'f'): Promise<Tello> {
-    return this.sendCmd('flip ' + orientation);
+    return this.sendCmd(`flip ${orientation}`);
   }
 
   /**
@@ -441,6 +444,6 @@ export class Tello {
    * @return {Promise<Tello>}
    */
   flyTo(x = 50, y = 50, z = 0, speed = 100): Promise<Tello> {
-    return this.sendCmd('go ' + x + ' ' + y + ' ' + z + ' ' + speed + ' ');
+    return this.sendCmd(`go ${x} ${y} ${z} ${speed} `);
   }
 }

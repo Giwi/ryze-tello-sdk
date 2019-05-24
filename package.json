@@ -16,11 +16,14 @@
     "html": "cp-cli 'src/www/' 'dist/www/'"
   },
   "dependencies": {
+    "axios": "^0.18.0",
+    "dayjs": "^1.8.14",
     "opn": "^5.4.0",
     "stack-trace": "^0.0.10",
     "websocket": "^1.0.28"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.0",
     "@types/node": "10.12.18",
     "@types/opn": "^5.1.0",
     "@types/stack-trace": "^0.0.29",
