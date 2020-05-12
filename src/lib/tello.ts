@@ -149,10 +149,17 @@ export class Tello {
     return new Promise<Tello>(resolve => {
       this.telloTelemetry.start(withWarp10, warp10Params).then(() => {
         this.hasTelemetry = true;
-        opn('http://127.0.0.1:3000/telemetry.html').then(() => {
+
+        const finish = () => {
           Logger.info('[Tello]', `Telemetry started`);
           resolve(this);
-        });
+        };
+
+        if (process.env.BROWSER === 'none') {
+          finish();
+        } else {
+          opn('http://127.0.0.1:3000/telemetry.html').then(finish);
+        }
       });
     });
   }
