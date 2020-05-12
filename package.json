@@ -3,8 +3,8 @@
   "author": {
     "name": "Giwi"
   },
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.0.1",
+  "private": false,
   "scripts": {
     "bower": "(cd src/www/ && bower install)",
     "build": "tsc -p . && yarn html",
@@ -15,7 +15,7 @@
     "gh": "yarn doc && gh-pages -d docs",
     "html": "cp-cli 'src/www/' 'dist/www/'"
   },
-  "files" : [
+  "files": [
     "./dist/"
   ],
   "dependencies": {
