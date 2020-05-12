@@ -7,7 +7,7 @@
   "private": false,
   "scripts": {
     "bower": "(cd src/www/ && bower install)",
-    "build": "tsc -p . && yarn html",
+    "build": "tsc -p . && yarn bower && yarn html",
     "dev": "'ts-node' src/index.ts",
     "start": "yarn build && node dist/index.js",
     "mock": "ts-node src/servers/mock_server.ts",
@@ -31,6 +31,7 @@
     "@types/opn": "^5.1.0",
     "@types/stack-trace": "^0.0.29",
     "@types/websocket": "^0.0.40",
+    "bower": "^1.8.8",
     "cp-cli": "^1.1.2",
     "gh-pages": "^2.0.1",
     "jsdoc": "^3.5.5",
