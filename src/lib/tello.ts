@@ -16,7 +16,7 @@ export class Tello {
   private PORT = 8889;
   private HOST = '192.168.10.1';
   private PORT2 = 8890;
-  private HOST2 = '0.0.0.0';
+  private HOST2 = '192.168.10.2';
   private localPort = 50602;
   private isMock = false;
   private isStreming = false;
