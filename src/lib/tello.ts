@@ -73,7 +73,7 @@ export class Tello {
   startStream(): Promise<Tello> {
     return new Promise<Tello>(resolve => {
       this.sendCmd('streamon').then(() => {
-        this.tello_video = createSocket('udp4');
+        this.tello_video = createSocket({ type: 'udp4', reuseAddr: true });
         this.h264encoder_spawn = {
           'command': 'mplayer',
           'args': [ '-gui', '-nolirc', '-fps', '35', '-really-quiet', '-' ]
@@ -304,8 +304,8 @@ export class Tello {
   start(): Promise<Tello> {
     this.myEmitter.setMaxListeners(20);
     return new Promise<Tello>(resolve => {
-      this.UDPClient = createSocket('udp4');
-      this.UDPServer = createSocket('udp4');
+      this.UDPClient = createSocket({ type: 'udp4', reuseAddr: true });
+      this.UDPServer = createSocket({ type: 'udp4', reuseAddr: true });
       this.UDPClient.bind(this.localPort, '0.0.0.0', () => {
         Logger.info('[Tello]', 'connected');
         this.sendCmd('command').then(() => {
