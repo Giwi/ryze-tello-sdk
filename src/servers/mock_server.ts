@@ -1,10 +1,10 @@
-import { TelloWebServer } from "./webServer";
-import opn = require("opn");
-import { Logger } from "../lib/logger";
-import { createServer } from "http";
-import { createSocket } from "dgram";
-import { server } from "websocket";
-import { AddressInfo } from "net";
+import { TelloWebServer } from './webServer';
+import opn = require('opn');
+import { Logger } from '../lib/logger';
+import { createServer } from 'http';
+import { createSocket } from 'dgram';
+import { server } from 'websocket';
+import { AddressInfo } from 'net';
 
 const PORT2 = 8889;
 const HOST2 = '0.0.0.0';
