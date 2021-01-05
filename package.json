@@ -19,7 +19,7 @@
     "./dist/"
   ],
   "dependencies": {
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "dayjs": "^1.8.14",
     "opn": "^5.4.0",
     "stack-trace": "^0.0.10",
