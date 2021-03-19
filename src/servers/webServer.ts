@@ -13,7 +13,7 @@ export class TelloWebServer {
      * @return {Promise}
      */
     start() {
-        return new Promise(resolve => {
+        return new Promise<void>(resolve => {
             this.httpServer = createServer(function (request, response) {
 
                 const filePath = __dirname + '/../www' + request.url;
@@ -63,7 +63,7 @@ export class TelloWebServer {
      * @return {Promise}
      */
     stop() {
-        return new Promise(resolve => {
+        return new Promise<void>(resolve => {
             if (this.httpServer) {
                 this.httpServer.close(() => {
                     Logger.info('[Web Server]', 'Web Server stopped');

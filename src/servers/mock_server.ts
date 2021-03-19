@@ -1,5 +1,5 @@
 import { TelloWebServer } from './webServer';
-import opn = require('opn');
+import opn = require('open');
 import { Logger } from '../lib/logger';
 import { createServer } from 'http';
 import { createSocket } from 'dgram';

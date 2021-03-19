@@ -6,7 +6,14 @@ const tello = new Tello();
   // Start the engine
   await tello.start();
   await tello.startStream();
-  await tello.startTelemetry();
+  await tello.startTelemetry({
+    withWarp10 : false,
+    withMqtt: true,
+    mqttParams: {
+      url: 'mqtt://127.0.0.1:1883',
+      'clientId': 'Giwi'
+    }
+  });
   await tello.takeoff();
   // Read the battery status
   console.log('battery', (await tello.get('bat')).value, '%');

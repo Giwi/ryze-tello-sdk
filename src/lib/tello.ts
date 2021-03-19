@@ -6,7 +6,8 @@ import { TelloTelemetry } from '../servers/telemetry';
 import { OSDData } from '../model/osdData';
 import { createSocket, Socket } from 'dgram';
 import { AddressInfo } from 'net';
-import opn = require('opn');
+import {Options} from "../model/options";
+import open = require("open");
 
 /**
  *
@@ -125,31 +126,22 @@ export class Tello {
 
   /**
    *
-   * @param {boolean} withWarp10
-   * @param {{url: string; writeToken: string}} warp10Params
-   * @returns {Promise<Tello>}
+   * @param options
    */
-  startTelemetry(withWarp10: boolean = false, warp10Params?: { url: string; writeToken: string }): Promise<Tello> {
+  startTelemetry(options: Options): Promise<Tello> {
     return new Promise<Tello>(resolve => {
       if(!this.isMock) {
         this.telloWebServer.start().then(() => {
-          this.runTelemetry(withWarp10,warp10Params).then(() => resolve(this));
+          this.runTelemetry(options).then(() => resolve(this));
         })
       }
     });
   }
 
-  /**
-   *
-   * @param {boolean} withWarp10
-   * @param {{url: string; writeToken: string}} warp10Params
-   * @returns {Promise<Tello>}
-   */
-  private runTelemetry(withWarp10: boolean = false, warp10Params?: { url: string; writeToken: string }): Promise<Tello> {
+  private runTelemetry(options: Options): Promise<Tello> {
     return new Promise<Tello>(resolve => {
-      this.telloTelemetry.start(withWarp10, warp10Params).then(() => {
+      this.telloTelemetry.start(options).then(() => {
         this.hasTelemetry = true;
-
         const finish = () => {
           Logger.info('[Tello]', `Telemetry started`);
           resolve(this);
@@ -158,7 +150,7 @@ export class Tello {
         if (process.env.BROWSER === 'none') {
           finish();
         } else {
-          opn('http://127.0.0.1:3000/telemetry.html').then(finish);
+          open('http://127.0.0.1:3000/telemetry.html').then(finish);
         }
       });
     });
@@ -315,13 +307,9 @@ export class Tello {
       this.UDPServer = createSocket('udp4');
       this.UDPClient.bind(this.localPort, '0.0.0.0', () => {
         Logger.info('[Tello]', 'connected');
-        this.sendCmd('command').then(() => {
-          resolve(this);
-        });
+        this.sendCmd('command').then(() => resolve(this));
       });
-      process.on('SIGINT', async() => {
-        await this.stop();
-      });
+      process.on('SIGINT', async() => await this.stop());
       this.UDPClient.on('message', msg => {
         if(msg.toString() === 'ok') {
           Logger.info('[Tello]', 'Data received from server : ', msg.toString());
