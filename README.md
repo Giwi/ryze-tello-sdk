@@ -43,7 +43,7 @@ const tello = require('./lib/tello');
   // Start the engine
   await tello.start();
   await tello.startStream();
-  await tello.startTelemetry();
+  await tello.startTelemetry({});
   await tello.takeoff();
   // Read the battery status
   console.log('battery', (await tello.get('bat')).value, '%');
@@ -71,7 +71,7 @@ const tello = require('./lib/tello');
 
 | Name | Unit | Description |
 | --- | --- | --- |
-| `h` | cm | height |
+| `h` | cm | height |
 | `baro` | cm | barometer |
 | `tof` | cm | to floor distance |
 | `templ` | °C | min temperature |

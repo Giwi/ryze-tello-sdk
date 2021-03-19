@@ -3,7 +3,7 @@
   "author": {
     "name": "Giwi"
   },
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": false,
   "scripts": {
     "bower": "(cd src/www/ && bower install)",
