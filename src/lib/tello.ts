@@ -164,7 +164,6 @@ export class Tello {
     return new Promise(resolve => {
       this.shutDownTelemetry().then(() => {
         this.telloTelemetry.stop().then(() => {
-          this.hasTelemetry = true;
           Logger.info('[Tello]', `Stopping telemetry`);
           resolve(this);
         });
