@@ -74,10 +74,14 @@ export class TelloTelemetry {
 
   stop(): Promise<TelloTelemetry> {
     return new Promise<TelloTelemetry>(resolve => {
-      this.httpServer.close(() => {
-        Logger.info('[TelloTelemetry - WS]', 'Web Server stopped');
+      if(this.httpServer) {
+        this.httpServer.close(() => {
+          Logger.info('[TelloTelemetry - WS]', 'Web Server stopped');
+          resolve(this);
+        });
+      } else {
         resolve(this);
-      });
+      }
     });
   }
 

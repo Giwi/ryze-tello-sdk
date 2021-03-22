@@ -1,22 +1,17 @@
-import { Tello } from "./lib/tello";
+import {Tello} from "./lib/tello";
 
 const tello = new Tello();
-
-(async() => {
+(async () => {
   // Start the engine
   await tello.start();
-  await tello.startStream();
-  await tello.startTelemetry({
-    withWarp10 : false,
-    withMqtt: true,
-    mqttParams: {
-      url: 'mqtt://127.0.0.1:1883',
-      'clientId': 'Giwi'
-    }
-  });
+  // await tello.startStream();
+  /* await tello.startTelemetry({
+    withMqtt: false,
+    mqttParams: {url: 'mqtt://127.0.0.1:1883', 'clientId': 'SenX'}
+  }); */
   await tello.takeoff();
   // Read the battery status
-  console.log('battery', (await tello.get('bat')).value, '%');
+  // console.log('battery', (await tello.get('bat')).value, '%');
   // Go up
   await tello.up(50);
   // Perform a forward flip
@@ -25,7 +20,7 @@ const tello = new Tello();
   await tello.forward(50);
   await tello.right(20);
   // Read the height
-  console.log('height', (await tello.get('h')).value, 'cm');
+ // console.log('height', (await tello.get('h')).value, 'cm');
   // Go backward
   await tello.backward(100);
   await tello.rotateCW(360);

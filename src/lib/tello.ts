@@ -1,11 +1,11 @@
-import { spawn } from 'child_process';
-import { EventEmitter } from 'events';
-import { Logger } from './logger';
-import { TelloWebServer } from '../servers/webServer';
-import { TelloTelemetry } from '../servers/telemetry';
-import { OSDData } from '../model/osdData';
-import { createSocket, Socket } from 'dgram';
-import { AddressInfo } from 'net';
+import {spawn} from 'child_process';
+import {EventEmitter} from 'events';
+import {Logger} from './logger';
+import {TelloWebServer} from '../servers/webServer';
+import {TelloTelemetry} from '../servers/telemetry';
+import {OSDData} from '../model/osdData';
+import {createSocket, Socket} from 'dgram';
+import {AddressInfo} from 'net';
 import {Options} from "../model/options";
 import open = require("open");
 
@@ -199,25 +199,24 @@ export class Tello {
    *
    */
   listenState() {
-    this.UDPServer.on('message', msg => {
-      const strMsg = msg.toString().trim();
-      const fieldList = strMsg.split(';');
-      fieldList.forEach(field => {
-        const fields = field.split(':');
-        this.osdData[ fields[ 0 ] ] = fields[ 1 ];
-        if(this.hasTelemetry) {
-          this.telloTelemetry.send(this.osdData);
-        }
-      });
-      /*     Logger.info('fieldList', fieldList)
-           Logger.info('osdData', osdData)*/
-    });
+    if(this.hasTelemetry) {
+      this.UDPServer.on('message', msg => {
+        const strMsg = msg.toString().trim();
+        const fieldList = strMsg.split(';');
+        fieldList.forEach(field => {
+          const fields = field.split(':');
+          this.osdData[fields[0]] = fields[1];
 
-    this.UDPServer.on('listening', () => {
-      const address = this.UDPServer.address() as AddressInfo;
-      Logger.info('[Tello]', 'server listening', address.address, address.port);
-    });
-    this.UDPServer.bind(this.PORT2, this.HOST2);
+          this.telloTelemetry.send(this.osdData);
+        });
+      });
+
+      this.UDPServer.on('listening', () => {
+        const address = this.UDPServer.address() as AddressInfo;
+        Logger.info('[Tello]', 'server listening', address.address, address.port);
+      });
+      this.UDPServer.bind(this.PORT2, this.HOST2);
+    }
   }
 
   /**
@@ -304,7 +303,9 @@ export class Tello {
     this.myEmitter.setMaxListeners(20);
     return new Promise<Tello>(resolve => {
       this.UDPClient = createSocket('udp4');
-      this.UDPServer = createSocket('udp4');
+      if(this.hasTelemetry) {
+        this.UDPServer = createSocket('udp4');
+      }
       this.UDPClient.bind(this.localPort, '0.0.0.0', () => {
         Logger.info('[Tello]', 'connected');
         this.sendCmd('command').then(() => resolve(this));
@@ -354,7 +355,9 @@ export class Tello {
    */
   async stop() {
     this.UDPClient.close();
-    this.UDPServer.close();
+    if(this.hasTelemetry) {
+      this.UDPServer.close();
+    }
     if(this.tello_video) {
       await this.tello_video.close();
     }
