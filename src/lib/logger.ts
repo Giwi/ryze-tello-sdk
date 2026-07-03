@@ -1,5 +1,11 @@
 import {inspect} from 'util';
-import stackTrace from 'stack-trace';
+
+function callerInfo(): string {
+  const lines = new Error().stack?.split('\n') ?? [];
+  // lines[0] = "Error", lines[1] = current method (fatal/debug), lines[2] = caller
+  const m = lines[2]?.match(/\s+at\s+(?:\w+\s+)?\(?(.+?):(\d+):\d+\)?$/);
+  return m ? `${m[1]}@${m[2]}` : 'unknown';
+}
 
 /** Static logging utility with timestamped levels: fatal, error, warning, info, success, debug. */
 export class Logger {
@@ -15,8 +21,7 @@ export class Logger {
 
   /** Log an error message and exit the process. */
   static fatal(...message: unknown[]): never {
-    const trace = stackTrace.get();
-    console.error(new Date(), '[FATAL]', `${trace[1].getFileName()}@${trace[1].getFunctionName()}:${trace[1].getLineNumber()}`);
+    console.error(new Date(), '[FATAL]', callerInfo());
     console.error(new Date(), '[FATAL]', Logger.stringify(...message).join(' '));
     process.exit(1);
   }
@@ -53,8 +58,7 @@ export class Logger {
 
   /** Log a debug message with file/function/line source information. */
   static debug(...message: unknown[]) {
-    const trace = stackTrace.get();
-    console.log(new Date(), '[DEBUG]', `${trace[1].getFileName()}@${trace[1].getFunctionName()}:${trace[1].getLineNumber()}`);
+    console.log(new Date(), '[DEBUG]', callerInfo());
     console.log(new Date(), '       ', Logger.stringify(...message).join(' '));
   }
 }
