@@ -78,6 +78,19 @@
         .log-content .resp { color: var(--green); }
         .log-content .sep { color: var(--text-dim); margin: 0 4px; }
         .log-content .line { padding: 2px 0; }
+        .footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-dim);
+            line-height: 1.8;
+        }
+        .footer a {
+            color: var(--text-dim);
+            text-decoration: none;
+        }
+        .footer a:hover { color: var(--text); }
+        .footer .sep { margin: 0 6px; }
         @media (max-width: 600px) {
             .log-content { height: 300px; font-size: 12px; }
             body { padding: 8px; }
@@ -94,6 +107,12 @@
     <div class="log">
         <div class="log-header">Command Log</div>
         <div class="log-content" id="content"></div>
+    </div>
+    <div class="footer">
+        <a href="https://github.com/Giwi/ryze-tello-sdk">GitHub</a><span class="sep">·</span>
+        <a href="https://www.npmjs.com/package/@giwisoft/ryze-tello-sdk">npm</a><span class="sep">·</span>
+        <a href="https://giwi.fr">GiwiSoft</a><br>
+        Ryze Tello SDK &copy; 2026 GiwiSoft
     </div>
 </div>
 <script src="./assets/vendor.js"></script>
