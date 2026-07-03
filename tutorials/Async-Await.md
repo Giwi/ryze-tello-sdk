@@ -1,9 +1,9 @@
 ### Use it with async / await
 
 ```javascript
-const tello = require('./lib/tello');
+const { Tello } = require('@giwisoft/ryze-tello-sdk');
+const tello = new Tello();
 
-'use strict';
 (async () => {
     await tello.start();
     await tello.startStream();
@@ -16,5 +16,6 @@ const tello = require('./lib/tello');
     console.log('height', (await tello.get('h')).value, 'cm');
     await tello.backward(100);
     await tello.land();
-})().then(() => tello.stop());
+    await tello.stop();
+})();
 ```

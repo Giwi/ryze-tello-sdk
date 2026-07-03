@@ -1,18 +1,17 @@
-### Use the video stream
+### Use the video stream
 
-> You must have mplayer installed
+Requires [mplayer](https://mplayerhq.hu) installed on your system.
 
 ```javascript
-'use strict';
-const tello = require('./lib/tello');
+const { Tello } = require('@giwisoft/ryze-tello-sdk');
+const tello = new Tello();
 
 (async () => {
-    // Start the engine
     await tello.start();
     console.log('battery', (await tello.get('bat')).value, '%');
     await tello.startStream();
     await tello.wait(10000);
     await tello.stopStream();
-    // And then shut down the engine
-})().then(() => tello.stop());
+    await tello.stop();
+})();
 ```

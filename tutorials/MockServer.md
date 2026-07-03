@@ -1,40 +1,34 @@
 ### Use the mock server
 
-This server does not support telemetry neither video stream.
+The mock server simulates the Tello drone over UDP on `127.0.0.1` so you can develop and test without a physical drone.
 
-    npm run mock
-or
+> Does not support video stream or telemetry.
 
-    npm run mock
+Start the server:
 
-And then
+```bash
+npm run mock
+```
+
+Then use the SDK in mock mode:
 
 ```javascript
-const tello = require('./lib/tello');
+const { Tello } = require('@giwisoft/ryze-tello-sdk');
+const tello = new Tello();
 
-'use strict';
 tello.mock().start()
     .then(() => tello.takeoff())
     .then(() => tello.forward(50))
-    .then(() => tello.rotateCCW(360))
-    .then(() => {
-        return new Promise(resolve =>
-            tello.get('h').then(r => {
-                console.log('height', r.value);
-                resolve()
-            }));
-    })
-    .then(() => tello.backward(50))
     .then(() => tello.land())
     .then(() => tello.stop());
 ```
 
-or 
+or with async / await:
 
 ```javascript
-const tello = require('./lib/tello');
+const { Tello } = require('@giwisoft/ryze-tello-sdk');
+const tello = new Tello();
 
-'use strict';
 (async () => {
     await tello.mock().start();
     await tello.takeoff();
@@ -42,8 +36,9 @@ const tello = require('./lib/tello');
     await tello.up(50);
     await tello.flip('f');
     await tello.forward(50);
-    console.log('height', (await tello.get('h')).value, 'cm');
-    await tello.backward(100);
     await tello.land();
-})().then(() => tello.stop());
+    await tello.stop();
+})();
 ```
+
+Open `http://localhost:3000/mockServer.html` to watch commands and responses in real time.
