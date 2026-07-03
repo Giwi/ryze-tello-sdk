@@ -23,14 +23,47 @@
             color: var(--text);
             font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             min-height: 100vh;
+            padding: 64px 16px 16px;
+        }
+        .nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 16px;
+            justify-content: space-between;
+            padding: 0 20px;
+            height: 48px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--surface-border);
+            z-index: 100;
+        }
+        .nav-brand {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--text);
+            text-decoration: none;
+        }
+        .nav-links { display: flex; gap: 0; }
+        .nav-links a {
+            font-size: 13px;
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 0 14px;
+            height: 48px;
+            line-height: 48px;
+            border-bottom: 2px solid transparent;
+            transition: color .15s, border-color .15s;
+        }
+        .nav-links a:hover { color: var(--text); }
+        .nav-links a.active {
+            color: var(--blue);
+            border-bottom-color: var(--blue);
         }
         .mock {
             width: 100%;
             max-width: 800px;
+            margin: 0 auto;
         }
         .header {
             display: flex;
@@ -98,6 +131,14 @@
     </style>
 </head>
 <body>
+<nav class="nav">
+    <a class="nav-brand" href="/">Tello SDK</a>
+    <div class="nav-links">
+        <a href="telemetry.html">Telemetry</a>
+        <a href="mockServer.html" class="active">MockServer</a>
+        <a href="https://github.com/Giwi/ryze-tello-sdk">GitHub</a>
+    </div>
+</nav>
 <div class="mock">
     <div class="header">
         <div class="status-dot" id="statusDot"></div>
