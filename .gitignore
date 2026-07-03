@@ -8,7 +8,7 @@ yarn-debug.log*
 yarn-error.log*
 .idea
 ryze-tello-sdk.iml
-*-lock.*
+yarn.lock
 docs
 bin
 dist
