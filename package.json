@@ -5,6 +5,9 @@
   },
   "version": "0.0.3",
   "private": false,
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsc -p . && esbuild src/www/js/vendor.js --bundle --minify --alias:moment=dayjs --outfile=dist/www/assets/vendor.js && cp src/www/*.html dist/www/",
     "dev": "ts-node src/index.ts",
@@ -26,7 +29,7 @@
     "websocket": "^1.0.33"
   },
   "devDependencies": {
-    "@types/node": "^14.14.35",
+    "@types/node": "^18.0.0",
     "@types/websocket": "^1.0.10",
     "esbuild": "^0.28.1",
     "jsdoc": "^4.0.5",
