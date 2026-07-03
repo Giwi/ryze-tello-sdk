@@ -2,382 +2,283 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tello Telemetry</title>
     <link rel="stylesheet" href="./assets/vendor.css"/>
     <style>
+        :root {
+            --bg: #0b0d11;
+            --surface: #15171c;
+            --surface-border: #1e2128;
+            --text: #e2e4e9;
+            --text-dim: #71747e;
+            --blue: #60a5fa;
+            --red: #f87171;
+            --green: #34d399;
+            --amber: #fbbf24;
+            --purple: #a78bfa;
+            --teal: #2dd4bf;
+            --pink: #f472b6;
+            --chart-grid: #1e2128;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .dashboard {
+            width: 100%;
+            max-width: 1400px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--amber);
+            flex-shrink: 0;
+        }
+        .status-dot.connected { background: var(--green); box-shadow: 0 0 8px var(--green); }
+        .status-dot.error { background: var(--red); box-shadow: 0 0 8px var(--red); }
+        .status-label { font-size: 13px; color: var(--text-dim); }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .card-full { grid-column: 1 / -1; }
+        .card-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+        }
         canvas {
-            height: 550px;
-            width: 100%
+            width: 100% !important;
+            height: 200px !important;
+        }
+        .battery-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .battery-value {
+            font: 600 28px/1 SF Mono, Monaco, Consolas, monospace;
+            min-width: 70px;
+        }
+        .battery-track {
+            flex: 1;
+            height: 10px;
+            background: var(--surface-border);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .battery-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width .3s, background .3s;
+        }
+        .battery-fill.good { background: var(--green); }
+        .battery-fill.ok { background: var(--amber); }
+        .battery-fill.low { background: var(--red); }
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+            body { padding: 8px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .battery-fill { transition: none; }
         }
     </style>
 </head>
 <body>
-<main role="main">
-    <div class="container">
+<div class="dashboard">
+    <div class="header">
+        <div class="status-dot" id="statusDot"></div>
+        <span class="status-label" id="statusLabel">Connecting</span>
         <h1>Telemetry</h1>
-        <div class="card-columns">
-
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title">Status</h6>
-                    <div id="status" class="alert alert-info">Connecting</div>
+    </div>
+    <div class="grid">
+        <div class="card card-full">
+            <div class="card-title">Battery</div>
+            <div class="battery-wrap">
+                <span class="battery-value" id="batValue">100%</span>
+                <div class="battery-track">
+                    <div class="battery-fill good" id="batFill" style="width:100%"></div>
                 </div>
             </div>
-
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title">Battery</h6>
-                    <div class="progress">
-                        <div id="bat" class="progress-bar bg-success" role="progressbar" style="width: 100%"
-                             aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title">Height</h6>
-                    <canvas id="height" height="250px"></canvas>
-                </div>
-            </div>
-
-
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title">Speed</h6>
-                    <canvas id="speed" height="250px"></canvas>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title">Temperatures</h6>
-                    <canvas id="temp" height="250px"></canvas>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title">Acceleration</h6>
-                    <canvas id="acc" height="250px"></canvas>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-body">
-                    <h65 class="card-title">Rotations</h65>
-                    <canvas id="rot" height="250px"></canvas>
-                </div>
-            </div>
-
+        </div>
+        <div class="card">
+            <div class="card-title">Height</div>
+            <canvas id="height"></canvas>
+        </div>
+        <div class="card">
+            <div class="card-title">Speed</div>
+            <canvas id="speed"></canvas>
+        </div>
+        <div class="card">
+            <div class="card-title">Temperatures</div>
+            <canvas id="temp"></canvas>
+        </div>
+        <div class="card">
+            <div class="card-title">Acceleration</div>
+            <canvas id="acc"></canvas>
+        </div>
+        <div class="card">
+            <div class="card-title">Rotations</div>
+            <canvas id="rot"></canvas>
         </div>
     </div>
-</main>
+</div>
 <script src="./assets/vendor.js"></script>
-<script language="JavaScript">
+<script>
     var chartColors = {
-        red: 'rgb(255, 99, 132)',
-        orange: 'rgb(255, 159, 64)',
-        yellow: 'rgb(255, 205, 86)',
-        green: 'rgb(75, 192, 192)',
-        blue: 'rgb(54, 162, 235)',
-        purple: 'rgb(153, 102, 255)',
-        grey: 'rgb(201, 203, 207)'
+        red: 'rgb(248, 113, 113)',
+        orange: 'rgb(251, 191, 36)',
+        yellow: 'rgb(250, 204, 21)',
+        green: 'rgb(52, 211, 153)',
+        blue: 'rgb(96, 165, 250)',
+        purple: 'rgb(167, 139, 250)',
+        teal: 'rgb(45, 212, 191)',
+        pink: 'rgb(244, 114, 182)',
+        grey: 'rgb(113, 116, 126)'
     };
 
-    var heightChart;
-    var tempChart;
-    var speedChart;
-    var accChart;
-    var rotChart;
-
+    var heightChart, tempChart, speedChart, accChart, rotChart;
     var maxTicks = 20;
 
-    $(function () {
-        "use strict";
-        // for better performance - to avoid searching in DOM
-        var status = $('#status');
-        // if user is running mozilla then use it's built-in WebSocket
-        window.WebSocket = window.WebSocket || window.MozWebSocket;
-        // if browser doesn't support WebSocket, just show
-        // some notification and exit
-        if (!window.WebSocket) {
-            status.html($('<p>', {text: 'Sorry, but your browser doesn\'t support WebSocket.'}));
-            return;
-        }
-        // open connection
-        var connection = new WebSocket('ws://127.0.0.1:1338');
-        var options = {
-            hover: {
-                animationDuration: 0, // duration of animations when hovering an item
-            },
-            elements: {
-                point: {radius: 0}
-            },
-            legend: {
-                position: 'bottom'
-            },
-            responsiveAnimationDuration: 0,
-            animation: {
-                duration: 0
-            },
-        };
-
-        var timeLineOpts = {...options};
-        timeLineOpts.scales = {
+    var ChartDefaults = {
+        hover: { animationDuration: 0 },
+        elements: { point: { radius: 0 } },
+        legend: { position: 'bottom', labels: { boxWidth: 10, padding: 12, fontColor: '#888b94', fontSize: 11 } },
+        responsiveAnimationDuration: 0,
+        animation: { duration: 0 },
+        scales: {
             yAxes: [{
-                scaleLabel: {
-                    display: true,
-                }
+                gridLines: { color: '#1e2128', zeroLineColor: '#1e2128', drawBorder: false },
+                ticks: { fontColor: '#71747e', fontSize: 10, maxTicksLimit: 5, padding: 6 }
             }],
             xAxes: [{
                 type: 'time',
-                ticks: {
-                    maxRotation: 0
-                },
-                time: {
-                    //   min: moment()
-                }
+                gridLines: { display: false },
+                ticks: { fontColor: '#71747e', fontSize: 10, maxRotation: 0, maxTicksLimit: 6, padding: 6 }
             }]
-        };
-        var heightOptions = {...timeLineOpts};
-        heightOptions.scales.yAxes[0].scaleLabel.labelString = 'cm';
-        var tempOptions = {...timeLineOpts};
-        tempOptions.scales.yAxes[0].scaleLabel.labelString = '°C';
-        var speedOptions = {...timeLineOpts};
-        speedOptions.scales.yAxes[0].scaleLabel.labelString = 'cm/s';
-        var accOptions = {...timeLineOpts};
-        accOptions.scales.yAxes[0].scaleLabel.labelString = '0.001g';
-        var rotOptions = {...timeLineOpts};
-        rotOptions.scales.yAxes[0].scaleLabel.labelString = '°';
+        }
+    };
+
+    $(function () {
+        var dot = $('#statusDot'), label = $('#statusLabel');
+        window.WebSocket = window.WebSocket || window.MozWebSocket;
+        if (!window.WebSocket) {
+            label.text('WebSocket not supported');
+            return;
+        }
+        var connection = new WebSocket('ws://127.0.0.1:1338');
+
+        function makeOpts(unit) {
+            return $.extend(true, {}, ChartDefaults, {
+                scales: { yAxes: [{ scaleLabel: { display: true, labelString: unit, fontColor: '#888b94', fontSize: 11 } }] }
+            });
+        }
 
         connection.onopen = function () {
-            status.html('Connected');
-            heightChart = new Chart($('#height'), {
-                type: 'line',
-                data: {
-                    datasets: [
-                        {
-                            data: [],
-                            label: 'Height',
-                            fill: false,
-                            backgroundColor: chartColors.blue,
-                            borderColor: chartColors.blue
-                        },
-                        {
-                            data: [],
-                            label: 'To floor distance',
-                            fill: false,
-                            backgroundColor: chartColors.red,
-                            borderColor: chartColors.red
-                        },
-                        {
-                            data: [],
-                            label: 'Barometer',
-                            fill: false,
-                            backgroundColor: chartColors.grey,
-                            borderColor: chartColors.grey
-                        }
-                    ]
-                },
-                options: heightOptions
-            });
+            dot.addClass('connected');
+            dot.removeClass('error');
+            label.text('Connected');
 
-            tempChart = new Chart($('#temp'), {
-                type: 'line',
-                data: {
-                    datasets: [
-                        {
-                            data: [],
-                            label: 'Min temperature',
-                            fill: false,
-                            backgroundColor: chartColors.blue,
-                            borderColor: chartColors.blue
-                        },
-                        {
-                            data: [],
-                            label: 'Max temperature',
-                            fill: false,
-                            backgroundColor: chartColors.red,
-                            borderColor: chartColors.red
-                        }
-                    ]
-                },
-                options: tempOptions
-            });
+            heightChart = new Chart($('#height'), { type: 'line', data: { datasets: [
+                { data: [], label: 'Height', fill: false, borderColor: chartColors.blue, borderWidth: 2 },
+                { data: [], label: 'To floor', fill: false, borderColor: chartColors.pink, borderWidth: 2 },
+                { data: [], label: 'Barometer', fill: false, borderColor: chartColors.grey, borderWidth: 2 }
+            ]}, options: makeOpts('cm') });
 
-            speedChart = new Chart($('#speed'), {
-                type: 'line',
-                data: {
-                    datasets: [
-                        {
-                            data: [],
-                            label: 'Speed x',
-                            fill: false,
-                            backgroundColor: chartColors.blue,
-                            borderColor: chartColors.blue
-                        },
-                        {
-                            data: [],
-                            label: 'Speed y',
-                            fill: false,
-                            backgroundColor: chartColors.red,
-                            borderColor: chartColors.red
-                        },
-                        {
-                            data: [],
-                            label: 'Speed z',
-                            fill: false,
-                            backgroundColor: chartColors.grey,
-                            borderColor: chartColors.grey
-                        }
-                    ]
-                },
-                options: speedOptions
-            });
+            tempChart = new Chart($('#temp'), { type: 'line', data: { datasets: [
+                { data: [], label: 'Min', fill: false, borderColor: chartColors.blue, borderWidth: 2 },
+                { data: [], label: 'Max', fill: false, borderColor: chartColors.red, borderWidth: 2 }
+            ]}, options: makeOpts('°C') });
 
-            accChart = new Chart($('#acc'), {
-                type: 'line',
-                data: {
-                    datasets: [
-                        {
-                            data: [],
-                            label: 'Acceleration x',
-                            fill: false,
-                            backgroundColor: chartColors.blue,
-                            borderColor: chartColors.blue
-                        },
-                        {
-                            data: [],
-                            label: 'Acceleration y',
-                            fill: false,
-                            backgroundColor: chartColors.red,
-                            borderColor: chartColors.red
-                        },
-                        {
-                            data: [],
-                            label: 'Acceleration z',
-                            fill: false,
-                            backgroundColor: chartColors.grey,
-                            borderColor: chartColors.grey
-                        }
-                    ]
-                },
-                options: accOptions
-            });
+            speedChart = new Chart($('#speed'), { type: 'line', data: { datasets: [
+                { data: [], label: 'X', fill: false, borderColor: chartColors.blue, borderWidth: 2 },
+                { data: [], label: 'Y', fill: false, borderColor: chartColors.red, borderWidth: 2 },
+                { data: [], label: 'Z', fill: false, borderColor: chartColors.teal, borderWidth: 2 }
+            ]}, options: makeOpts('cm/s') });
 
-            rotChart = new Chart($('#rot'), {
-                type: 'line',
-                data: {
-                    datasets: [
-                        {
-                            data: [],
-                            label: 'Attitude pitch',
-                            fill: false,
-                            backgroundColor: chartColors.blue,
-                            borderColor: chartColors.blue
-                        },
-                        {
-                            data: [],
-                            label: 'Attitude roll',
-                            fill: false,
-                            backgroundColor: chartColors.red,
-                            borderColor: chartColors.red
-                        },
-                        {
-                            data: [],
-                            label: 'Attitude yaw',
-                            fill: false,
-                            backgroundColor: chartColors.grey,
-                            borderColor: chartColors.grey
-                        }
-                    ]
-                },
-                options: rotOptions
-            });
+            accChart = new Chart($('#acc'), { type: 'line', data: { datasets: [
+                { data: [], label: 'X', fill: false, borderColor: chartColors.blue, borderWidth: 2 },
+                { data: [], label: 'Y', fill: false, borderColor: chartColors.red, borderWidth: 2 },
+                { data: [], label: 'Z', fill: false, borderColor: chartColors.teal, borderWidth: 2 }
+            ]}, options: makeOpts('0.001g') });
+
+            rotChart = new Chart($('#rot'), { type: 'line', data: { datasets: [
+                { data: [], label: 'Pitch', fill: false, borderColor: chartColors.blue, borderWidth: 2 },
+                { data: [], label: 'Roll', fill: false, borderColor: chartColors.red, borderWidth: 2 },
+                { data: [], label: 'Yaw', fill: false, borderColor: chartColors.purple, borderWidth: 2 }
+            ]}, options: makeOpts('°') });
         };
 
-        connection.onerror = function (error) {
-            // just in there were some problems with connection...
-            console.error(error);
-            status.html($('<p>', {
-                text: 'Sorry, but there\'s some problem with your '
-                    + 'connection or the server is down.'
-            }));
+        connection.onerror = function () {
+            dot.addClass('error');
+            dot.removeClass('connected');
+            label.text('Connection error');
         };
 
-        connection.onmessage = function (message) {
-            telemetry(JSON.parse(message.data));
-        };
+        connection.onmessage = function (msg) { telemetry(JSON.parse(msg.data)); };
 
         setInterval(function () {
             if (connection.readyState !== 1) {
-                status.text('Error');
+                dot.addClass('error');
+                dot.removeClass('connected');
+                label.text('Disconnected');
             }
         }, 3000);
 
-        function telemetry(message) {
+        function pushData(chart, values) {
             var time = moment();
-            heightChart.data.datasets[0].data.push({t: time, y: parseFloat(message.h)});
-            heightChart.data.datasets[1].data.push({t: time, y: parseFloat(message.tof)});
-            heightChart.data.datasets[2].data.push({t: time, y: parseFloat(message.baro)});
-            heightChart.data.datasets.forEach(d => {
-                if (d.data.length > maxTicks) {
-                    d.data.shift();
-                }
+            values.forEach(function (v, i) {
+                chart.data.datasets[i].data.push({ t: time, y: v });
+                if (chart.data.datasets[i].data.length > maxTicks) chart.data.datasets[i].data.shift();
             });
-            heightChart.update();
+            chart.update();
+        }
 
-            tempChart.data.datasets[0].data.push({t: time, y: parseFloat(message.templ)});
-            tempChart.data.datasets[1].data.push({t: time, y: parseFloat(message.temph)});
-            tempChart.data.datasets.forEach(d => {
-                if (d.data.length > maxTicks) {
-                    d.data.shift();
-                }
-            });
-            tempChart.update();
+        function telemetry(m) {
+            pushData(heightChart, [parseFloat(m.h), parseFloat(m.tof), parseFloat(m.baro)]);
+            pushData(tempChart, [parseFloat(m.templ), parseFloat(m.temph)]);
+            pushData(speedChart, [parseFloat(m.vgx), parseFloat(m.vgy), -parseFloat(m.vgz)]);
+            pushData(accChart, [parseFloat(m.agx), parseFloat(m.agy), parseFloat(m.agz)]);
+            pushData(rotChart, [parseFloat(m.pitch), parseFloat(m.roll), parseFloat(m.yaw)]);
 
-            speedChart.data.datasets[0].data.push({t: time, y: parseFloat(message.vgx)});
-            speedChart.data.datasets[1].data.push({t: time, y: parseFloat(message.vgy)});
-            speedChart.data.datasets[2].data.push({t: time, y: - parseFloat(message.vgz)});
-            speedChart.data.datasets.forEach(d => {
-                if (d.data.length > maxTicks) {
-                    d.data.shift();
-                }
-            });
-            speedChart.update();
-
-            accChart.data.datasets[0].data.push({t: time, y: parseFloat(message.agx)});
-            accChart.data.datasets[1].data.push({t: time, y: parseFloat(message.agy)});
-            accChart.data.datasets[2].data.push({t: time, y: parseFloat(message.agz)});
-            accChart.data.datasets.forEach(d => {
-                if (d.data.length > maxTicks) {
-                    d.data.shift();
-                }
-            });
-            accChart.update();
-
-            rotChart.data.datasets[0].data.push({t: time, y: parseFloat(message.pitch)});
-            rotChart.data.datasets[1].data.push({t: time, y: parseFloat(message.roll)});
-            rotChart.data.datasets[2].data.push({t: time, y: parseFloat(message.yaw)});
-            rotChart.data.datasets.forEach(d => {
-                if (d.data.length > maxTicks) {
-                    d.data.shift();
-                }
-            });
-            rotChart.update();
-
-            var b = parseFloat(message.bat);
-            var bat = $('#bat').html(b + '%').attr('aria-valuenow', b).css('width', b + '%').removeClass('bg-success');
-            if (b > 80) {
-                bat.addClass('bg-success')
-            } else if (b > 20) {
-                bat.addClass('bg-warning')
-            } else {
-                bat.addClass('bg-danger')
-            }
+            var b = parseFloat(m.bat);
+            $('#batValue').text(b + '%');
+            var fill = $('#batFill').css('width', b + '%');
+            fill.removeClass('good ok low');
+            fill.addClass(b > 80 ? 'good' : b > 20 ? 'ok' : 'low');
         }
     });
 </script>
