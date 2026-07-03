@@ -12,10 +12,12 @@ const MIME_TYPES: Record<string, string> = {
   '.wav': 'audio/wav',
 };
 
+/** Simple static file web server for serving the telemetry dashboard and mock server UI. */
 export class TelloWebServer {
   private httpServer?: Server;
   private readonly port = 3000;
 
+  /** Start serving static files from the `www` directory on port 3000. */
   start(): Promise<void> {
     return new Promise<void>(resolve => {
       this.httpServer = createServer((req: IncomingMessage, res: ServerResponse) => {
@@ -38,6 +40,7 @@ export class TelloWebServer {
     });
   }
 
+  /** Stop the HTTP server. */
   stop(): Promise<void> {
     return new Promise<void>(resolve => {
       if (this.httpServer) {

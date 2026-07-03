@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ryze Tello SDK: <?js= title ?></title>
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <style>
+        :root {
+            --bg: #0b0d11;
+            --surface: #15171c;
+            --surface-border: #1e2128;
+            --text: #e2e4e9;
+            --text-dim: #71747e;
+            --text-muted: #53565e;
+            --blue: #60a5fa;
+            --accent: #3b82f6;
+            --link: #60a5fa;
+            --code-bg: #1a1d24;
+            --nav-bg: #0f1116;
+            --zebra: #181b22;
+        }
+        * { box-sizing: border-box; }
+        html { overflow: auto; font-size: 14px; }
+        body {
+            font: 14px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            margin: 0;
+            padding: 56px 0 0;
+        }
+        a { color: var(--link); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        h1, h2, h3, h4, h5, h6 { font-weight: 600; letter-spacing: -0.01em; margin: 1.2em 0 0.6em; }
+        h1 { font-size: 1.8rem; }
+        h2 { font-size: 1.4rem; border-bottom: 1px solid var(--surface-border); padding-bottom: 0.3em; }
+        h3 { font-size: 1.15rem; }
+        h4 { font-size: 1rem; }
+        p { margin: 0.6em 0; }
+        tt, code, kbd, samp {
+            font-family: SF Mono, Monaco, Consolas, 'Andale Mono', monospace;
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.92em;
+            color: var(--blue);
+        }
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--surface-border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            overflow-x: auto;
+            line-height: 1.45;
+        }
+        pre code { background: none; padding: 0; color: var(--text); }
+        .nav-bar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 48px; padding: 0 20px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--surface-border);
+        }
+        .nav-bar .brand {
+            font-size: 14px; font-weight: 600;
+            color: var(--text); text-decoration: none;
+            letter-spacing: -0.01em;
+        }
+        .nav-bar .nav-links { display: flex; gap: 0; }
+        .nav-bar .nav-links a {
+            font-size: 13px; color: var(--text-dim);
+            text-decoration: none; padding: 0 14px;
+            height: 48px; line-height: 48px;
+            border-bottom: 2px solid transparent;
+            transition: color .15s, border-color .15s;
+        }
+        .nav-bar .nav-links a:hover { color: var(--text); }
+        .nav-bar .nav-links a.active { color: var(--blue); border-bottom-color: var(--blue); }
+        #main {
+            max-width: 1000px; margin: 0 auto; padding: 20px 24px;
+        }
+        .page-title {
+            font-size: 1.6rem; font-weight: 700;
+            border: none; padding: 0; margin: 0 0 0.8em;
+        }
+        article { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 12px; padding: 20px 24px; }
+        section {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--surface-border);
+        }
+        section:last-child { border-bottom: none; }
+        section h3, section h4 { margin-top: 0; }
+        .details { margin-left: 0; }
+        .details dt { font-weight: 600; color: var(--text-dim); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 1em; }
+        .details dd { margin: 0.3em 0 0.3em 1.5em; }
+        .name { font-family: SF Mono, Monaco, Consolas, monospace; color: var(--blue); }
+        .type-signature { color: var(--text-muted); font-size: 0.9em; }
+        .signature { color: var(--text-dim); }
+        .tag-source { color: var(--text-muted); font-size: 0.85em; }
+        .tag-source a { color: var(--text-muted); }
+        table {
+            width: 100%; border-collapse: collapse;
+            margin: 1em 0;
+        }
+        th, td {
+            padding: 8px 12px; text-align: left;
+            border-bottom: 1px solid var(--surface-border);
+        }
+        th { font-weight: 600; color: var(--text-dim); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; background: var(--code-bg); }
+        tr:nth-child(even) td { background: var(--zebra); }
+        nav {
+            position: fixed; left: 0; top: 48px; bottom: 0;
+            width: 280px; overflow-y: auto;
+            background: var(--nav-bg);
+            border-right: 1px solid var(--surface-border);
+            padding: 16px;
+        }
+        nav h2, nav h3 {
+            font-size: 0.8rem; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-muted);
+            border: none; margin: 1.2em 0 0.5em; padding: 0;
+        }
+        nav ul { list-style: none; padding: 0; margin: 0; }
+        nav li { margin: 2px 0; }
+        nav li a {
+            color: var(--text-dim); font-size: 0.92rem;
+            display: block; padding: 3px 8px; border-radius: 4px;
+        }
+        nav li a:hover { color: var(--text); background: var(--surface); text-decoration: none; }
+        nav .selected a { color: var(--blue); }
+        @media (max-width: 900px) {
+            nav { display: none; }
+            #main { max-width: 100%; }
+        }
+        .footer {
+            text-align: center; font-size: 12px; color: var(--text-dim);
+            padding: 32px 20px; line-height: 1.8;
+        }
+        .footer a { color: var(--text-dim); }
+        .footer a:hover { color: var(--text); }
+        .footer .sep { margin: 0 6px; color: var(--text-muted); }
+        .prettyprint { background: var(--code-bg) !important; border: 1px solid var(--surface-border) !important; border-radius: 8px; padding: 14px 16px !important; }
+        .prettyprint li { background: var(--code-bg) !important; }
+        .prettyprint .atv { color: #86efac; }
+        .prettyprint .atn { color: #c4b5fd; }
+        .prettyprint .kwd { color: #f472b6; }
+        .prettyprint .str { color: #86efac; }
+        .prettyprint .com { color: #53565e; font-style: italic; }
+        .prettyprint .lit { color: #fbbf24; }
+        .prettyprint .pln { color: var(--text); }
+        .prettyprint .pun { color: var(--text-dim); }
+        .prettyprint .typ { color: #60a5fa; }
+        .prettyprint .tag { color: #f472b6; }
+    </style>
+</head>
+<body>
+
+<div class="nav-bar">
+    <a class="brand" href="index.html">Tello SDK</a>
+    <div class="nav-links">
+        <a href="index.html" class="active">Docs</a>
+        <a href="https://github.com/Giwi/ryze-tello-sdk">GitHub</a>
+    </div>
+</div>
+
+<div id="main">
+    <h1 class="page-title"><?js= title ?></h1>
+    <?js= content ?>
+</div>
+
+<nav>
+    <h2>Modules</h2>
+    <?js= this.nav ?>
+</nav>
+
+<div class="footer">
+    <a href="https://github.com/Giwi/ryze-tello-sdk">GitHub</a><span class="sep">·</span>
+    <a href="https://www.npmjs.com/package/@giwisoft/ryze-tello-sdk">npm</a><span class="sep">·</span>
+    <a href="https://giwi.fr">GiwiSoft</a><br>
+    Ryze Tello SDK &copy; 2026 GiwiSoft
+</div>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

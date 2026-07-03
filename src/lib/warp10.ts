@@ -15,15 +15,18 @@ const UNITS: Record<string, string> = {
   bat: 'percent', time: 'second'
 };
 
+/** Forwards OSD telemetry data to a Warp 10 time-series database. */
 export class Warp10 {
   private readonly url: string;
   private readonly token: string;
 
+  /** @param params - Warp 10 endpoint URL and write token. */
   constructor(params: { url: string; writeToken: string }) {
     this.url = params.url;
     this.token = params.writeToken;
   }
 
+  /** Push a telemetry frame as Warp 10 GTS input. Skips `mpry` and `mid` fields. */
   pushData(osdData: OSDData) {
     const timestamp = dayjs().utc().valueOf() * 1000;
     const lines = Object.keys(osdData)

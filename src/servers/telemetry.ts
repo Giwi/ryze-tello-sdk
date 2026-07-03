@@ -6,6 +6,7 @@ import {Warp10} from '../lib/warp10';
 import {Options} from '../model/options';
 import {MqttForwarder} from '../lib/MqttForwarder';
 
+/** WebSocket server that broadcasts OSD telemetry to browser clients. Optionally forwards to Warp 10 and/or MQTT. */
 export class TelloTelemetry {
   private wsClients: connection[] = [];
   private readonly port = 1338;
@@ -16,6 +17,7 @@ export class TelloTelemetry {
   private mqttForwarder?: MqttForwarder;
   private options!: Options;
 
+  /** Start the WebSocket server on port 1338. Initialises Warp 10 and MQTT forwarders if configured in options. */
   start(options: Options): Promise<TelloTelemetry> {
     this.options = options;
     if (options.withWarp10 && options.warp10Params) {
@@ -44,6 +46,7 @@ export class TelloTelemetry {
     });
   }
 
+  /** Broadcast a telemetry frame to all connected WebSocket clients (throttled to 500ms). */
   send(data: OSDData) {
     if (Date.now() - this.lastSend >= 500) {
       this.warp10?.pushData(data);
@@ -53,10 +56,12 @@ export class TelloTelemetry {
     }
   }
 
+  /** Broadcast a raw video chunk to all connected clients. */
   sendVideo(chunk: Buffer) {
     this.wsClients.forEach(c => c.sendBytes(chunk));
   }
 
+  /** Stop the HTTP and WebSocket server. */
   stop(): Promise<TelloTelemetry> {
     return new Promise<TelloTelemetry>(resolve => {
       if (this.httpServer) {
