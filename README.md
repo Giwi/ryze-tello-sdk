@@ -6,11 +6,11 @@ Video stream is supported, but you need mplayer.
 
 ## Usage
 
-    yarn install @giwisoft/ryze-tello-sdk
+    npm install @giwisoft/ryze-tello-sdk
 
 Connect to the Tello's Wifi.
 
-    yarn start
+    npm start
 
 ```javascript
 'use strict';

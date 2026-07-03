@@ -5,7 +5,7 @@ This server does not support telemetry neither video stream.
     npm run mock
 or
 
-    yarn mock
+    npm run mock
 
 And then
 

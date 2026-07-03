@@ -1,9 +1,5 @@
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import {OSDData} from '../model/osdData';
 import {Logger} from './logger';
-
-dayjs.extend(utc);
 
 const UNITS: Record<string, string> = {
   h: 'cm', x: 'cm', y: 'cm', z: 'cm', baro: 'cm', tof: 'cm',
@@ -27,7 +23,7 @@ export class Warp10 {
 
   /** Push a telemetry frame as Warp 10 GTS input. Skips `mpry` and `mid` fields. */
   pushData(osdData: OSDData) {
-    const timestamp = dayjs().utc().valueOf() * 1000;
+    const timestamp = Date.now() * 1000;
     const lines = Object.keys(osdData)
       .filter(k => k && k !== 'mpry' && k !== 'mid')
       .map(k => `${timestamp}// ryze.tello.${k}{unit=${encodeURIComponent(UNITS[k])}} ${osdData[k]}`)

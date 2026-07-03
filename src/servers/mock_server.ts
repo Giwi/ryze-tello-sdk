@@ -15,7 +15,7 @@ const udpClient = createSocket('udp4');
 const wsClients: connection[] = [];
 const telloWebServer = new TelloWebServer();
 
-telloWebServer.start();
+telloWebServer.start().catch(err => Logger.error('[Mock Server]', 'Failed to start web server', err));
 
 const httpServer = createServer(() => {});
 

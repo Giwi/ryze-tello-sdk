@@ -8,9 +8,9 @@
   "scripts": {
     "build": "tsc -p . && esbuild src/www/js/vendor.js --bundle --minify --outfile=dist/www/assets/vendor.js && cp src/www/*.html dist/www/",
     "dev": "ts-node src/index.ts",
-    "start": "yarn build && node dist/index.js",
+    "start": "npm run build && node dist/index.js",
     "mock": "ts-node src/servers/mock_server.ts",
-    "doc": "yarn build && jsdoc dist -c .jsdoc.json"
+    "doc": "npm run build && jsdoc dist -c .jsdoc.json"
   },
   "files": [
     "./dist/"
@@ -19,7 +19,7 @@
 
     "bootstrap": "^4.6.2",
     "chart.js": "^2.9.4",
-    "dayjs": "^1.10.4",
+
     "jquery": "^3.7.1",
     "moment": "^2.30.1",
     "mqtt": "^4.2.6",
