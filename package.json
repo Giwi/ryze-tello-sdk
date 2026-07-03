@@ -17,7 +17,7 @@
     "./dist/"
   ],
   "dependencies": {
-    "axios": "^0.32.0",
+
     "bootstrap": "^4.6.2",
     "chart.js": "^2.9.4",
     "dayjs": "^1.10.4",

@@ -1,7 +1,6 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import {OSDData} from '../model/osdData';
-import axios from 'axios';
 import {Logger} from './logger';
 
 dayjs.extend(utc);
@@ -35,11 +34,13 @@ export class Warp10 {
       .join('\n');
 
     Logger.info('[Warp10]', 'pushData', lines);
-    axios.post(this.url + '/update', lines, {
+    fetch(this.url + '/update', {
+      method: 'POST',
       headers: {
         'X-Warp10-Token': this.token,
         'Transfer-Encoding': 'chunked'
-      }
+      },
+      body: lines
     });
   }
 }
