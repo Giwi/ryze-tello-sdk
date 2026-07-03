@@ -1,6 +1,6 @@
-export class Options {
-  withWarp10? = false;
+export interface Options {
+  withWarp10?: boolean;
   warp10Params?: { url: string; writeToken: string };
-  withMqtt? = false;
-  mqttParams?: { url: string, clientId: string };
+  withMqtt?: boolean;
+  mqttParams?: { url: string; clientId: string };
 }

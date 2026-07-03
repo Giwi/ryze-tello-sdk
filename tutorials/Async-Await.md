@@ -1,4 +1,4 @@
-### Use it with async / await
+### Use it with async / await
 
 ```javascript
 const tello = require('./lib/tello');

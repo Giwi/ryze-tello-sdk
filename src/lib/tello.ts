@@ -1,4 +1,4 @@
-import {spawn} from 'child_process';
+import {spawn, ChildProcessWithoutNullStreams} from 'child_process';
 import {EventEmitter} from 'events';
 import {Logger} from './logger';
 import {TelloWebServer} from '../servers/webServer';
@@ -6,135 +6,78 @@ import {TelloTelemetry} from '../servers/telemetry';
 import {OSDData} from '../model/osdData';
 import {createSocket, Socket} from 'dgram';
 import {AddressInfo} from 'net';
-import {Options} from "../model/options";
-import open = require("open");
+import {Options} from '../model/options';
+import open from 'open';
 
-/**
- *
- */
+const HOST = '192.168.10.1';
+const PORT = 8889;
+const STATE_PORT = 8890;
+const VIDEO_PORT = 11111;
+const LOCAL_PORT = 50602;
+
 export class Tello {
 
-  private PORT = 8889;
-  private HOST = '192.168.10.1';
-  private PORT2 = 8890;
-  private HOST2 = '0.0.0.0';
-  private localPort = 50602;
   private isMock = false;
-  private isStreming = false;
+  private isStreaming = false;
   private hasTelemetry = false;
-  private myEmitter = new EventEmitter();
-  private osdData: OSDData = new OSDData();
-  private deviceIP = this.HOST;
-  private UDPClient : Socket;
-  private UDPServer: Socket;
-  private h264encoder;
-  private h264encoder_spawn;
-  private tello_video;
-  private telloWebServer: TelloWebServer = new TelloWebServer();
-  private telloTelemetry: TelloTelemetry = new TelloTelemetry();
+  private emitter = new EventEmitter();
+  private osdData: OSDData = {} as OSDData;
+  private deviceIP = HOST;
+  private UDPClient!: Socket;
+  private UDPServer!: Socket;
+  private telloVideo?: Socket;
+  private h264encoder?: ChildProcessWithoutNullStreams;
+  private telloWebServer = new TelloWebServer();
+  private telloTelemetry = new TelloTelemetry();
 
-  /**
-   *
-   * @param {number}  time in ms
-   * @return {Promise<Tello>}
-   */
-  async wait(time: number): Promise<Tello> {
-    return new Promise<Tello>(resolve => {
-      setTimeout(() => {
-        resolve(this);
-      }, time);
-    });
-  };
+  wait(time: number): Promise<Tello> {
+    return new Promise<Tello>(resolve => setTimeout(() => resolve(this), time));
+  }
 
-
-  /**
-   *
-   * @return {Promise<Tello>}
-   */
   stopStream(): Promise<Tello> {
     return new Promise<Tello>(resolve => {
       this.sendCmd('streamoff').then(() => {
-        if(this.tello_video) {
-          this.tello_video.close();
-          this.tello_video = undefined;
-        }
-        if(this.h264encoder) {
-          this.h264encoder.kill();
-        }
-        this.isStreming = false;
-        resolve(this)
+        this.telloVideo?.close();
+        this.telloVideo = undefined;
+        this.h264encoder?.kill();
+        this.isStreaming = false;
+        resolve(this);
       });
     });
   }
 
-  /**
-   *
-   * @return {Promise<Tello>}
-   */
   startStream(): Promise<Tello> {
     return new Promise<Tello>(resolve => {
       this.sendCmd('streamon').then(() => {
-        this.tello_video = createSocket('udp4');
-        this.h264encoder_spawn = {
-          'command': 'mplayer',
-          'args': [ '-gui', '-nolirc', '-fps', '35', '-really-quiet', '-' ]
-        };
-        this.h264encoder = spawn(this.h264encoder_spawn.command, this.h264encoder_spawn.args);
-      /*  this.h264encoder.on('close', (code) => {
-          Logger.error('[Tello]', `child process exited with code ${code}`);
-        });*/
+        this.telloVideo = createSocket('udp4');
+        this.h264encoder = spawn('mplayer', ['-gui', '-nolirc', '-fps', '35', '-really-quiet', '-']);
         this.h264encoder.stderr.on('data', data => {
           Logger.error('[Tello]', 'mplayer error', data.toString());
         });
-
-        /*  this.h264encoder.stdout.on('data', data => {
-              const idx = data.indexOf(this.headers['h264_baseline']);
-              if (idx > -1 && this.h264chunks.length > 0) {
-                  this.h264chunks.push(data.slice(0, idx));
-                  if (this.hasTelemetry) {
-                      try {
-                          TelloTelemetry.sendVideo(Buffer.concat(this.h264chunks).toString('binary'));
-                      } catch (e) {
-                      }
-                  }
-                  this.h264chunks = [];
-                  this.h264chunks.push(data.slice(idx));
-              } else {
-                  this.h264chunks.push(data);
-              }
-          });*/
-        this.tello_video.on('message', msg => this.h264encoder.stdin.write(msg));
-        this.tello_video.on('listening', () => {
-          Logger.info('[Tello]', `tello_video listening ${this.tello_video.address().address}:${this.tello_video.address().port}`);
-          this.isStreming = true;
-          resolve(this)
+        this.telloVideo.on('message', msg => this.h264encoder?.stdin.write(msg));
+        this.telloVideo.on('listening', () => {
+          const addr = this.telloVideo!.address() as AddressInfo;
+          Logger.info('[Tello]', `tello_video listening ${addr.address}:${addr.port}`);
+          this.isStreaming = true;
+          resolve(this);
         });
-        this.tello_video.bind(11111, this.HOST2);
+        this.telloVideo.bind(VIDEO_PORT, '0.0.0.0');
       });
     });
   }
 
-  /**
-   *
-   * @return {Tello}
-   */
   mock(): Tello {
     this.deviceIP = '127.0.0.1';
     this.isMock = true;
     return this;
   }
 
-  /**
-   *
-   * @param options
-   */
   startTelemetry(options: Options): Promise<Tello> {
+    if (this.isMock) return Promise.resolve(this);
     return new Promise<Tello>(resolve => {
-      if(!this.isMock) {
-        this.telloWebServer.start().then(() => {
-          this.runTelemetry(options).then(() => resolve(this));
-        })
-      }
+      this.telloWebServer.start().then(() => {
+        this.runTelemetry(options).then(() => resolve(this));
+      });
     });
   }
 
@@ -143,10 +86,9 @@ export class Tello {
       this.telloTelemetry.start(options).then(() => {
         this.hasTelemetry = true;
         const finish = () => {
-          Logger.info('[Tello]', `Telemetry started`);
+          Logger.info('[Tello]', 'Telemetry started');
           resolve(this);
         };
-
         if (process.env.BROWSER === 'none') {
           finish();
         } else {
@@ -156,291 +98,118 @@ export class Tello {
     });
   }
 
-  /**
-   *
-   * @return {Promise<Tello>}
-   */
   stopTelemetry(): Promise<Tello> {
     return new Promise(resolve => {
       this.shutDownTelemetry().then(() => {
         this.telloTelemetry.stop().then(() => {
-          Logger.info('[Tello]', `Stopping telemetry`);
+          Logger.info('[Tello]', 'Stopping telemetry');
           resolve(this);
         });
       });
     });
   }
 
-  /**
-   *
-   * @return {Promise<Tello>}
-   */
   private shutDownTelemetry(): Promise<Tello> {
+    if (this.isMock) return Promise.resolve(this);
     return new Promise<Tello>(resolve => {
-      if(!this.isMock) {
-        this.telloWebServer.stop().then(() => resolve(this));
-      } else {
-        resolve(this);
-      }
+      this.telloWebServer.stop().then(() => resolve(this));
     });
   }
 
-  /**
-   *
-   * @param {string} value
-   * @return {Promise<{value: string, tello: Tello}>}
-   */
   get(value: string): Promise<{ value: string, tello: Tello }> {
-    return Promise.resolve({ value: this.osdData[ value ], tello: this });
+    return Promise.resolve({value: this.osdData[value], tello: this});
   }
 
-  /**
-   *
-   */
-  listenState() {
-    if(this.hasTelemetry) {
+  private listenState() {
+    if (this.hasTelemetry) {
       this.UDPServer.on('message', msg => {
         const strMsg = msg.toString().trim();
-        const fieldList = strMsg.split(';');
-        fieldList.forEach(field => {
-          const fields = field.split(':');
-          this.osdData[fields[0]] = fields[1];
-
-          this.telloTelemetry.send(this.osdData);
+        strMsg.split(';').forEach(field => {
+          const [key, val] = field.split(':');
+          this.osdData[key] = val;
         });
+        this.telloTelemetry.send(this.osdData);
       });
-
       this.UDPServer.on('listening', () => {
         const address = this.UDPServer.address() as AddressInfo;
         Logger.info('[Tello]', 'server listening', address.address, address.port);
       });
-      this.UDPServer.bind(this.PORT2, this.HOST2);
+      this.UDPServer.bind(STATE_PORT, '0.0.0.0');
     }
   }
 
-  /**
-   *
-   * @param {string} cmd
-   * @return {Promise<Tello>}
-   */
-  sendMethod(cmd: string): Promise<Tello> {
+  private sendRaw(cmd: string): Promise<Tello> {
     return new Promise<Tello>((resolve, reject) => {
-      const message = new Buffer(cmd);
+      const message = Buffer.from(cmd);
       Logger.info('[Tello]', 'send:', cmd);
-      this.UDPClient.send(message, 0, message.length, this.PORT, this.deviceIP, err => {
-        if(err) {
-          reject(err);
-        } else {
-          resolve(this)
-        }
+      this.UDPClient.send(message, 0, message.length, PORT, this.deviceIP, err => {
+        if (err) reject(err);
+        else resolve(this);
       });
     });
   }
 
-  /**
-   *
-   * @param {string} cmd
-   * @return {Promise<Tello>}
-   */
   sendCmd(cmd: string): Promise<Tello> {
-    return new Promise<Tello>(((resolve, reject) => {
-      this.sendMethod(cmd).then(() => {
-        this.myEmitter.on('status', () => {
-          resolve(this);
-        });
-      }).catch(err => {
-        reject(err);
-      });
-    }));
+    return new Promise<Tello>((resolve, reject) => {
+      this.sendRaw(cmd).then(() => {
+        this.emitter.once('status', () => resolve(this));
+      }).catch(reject);
+    });
   }
 
-  /**
-   *
-   * @return {Promise<Tello>}
-   */
-  async emergencyStop(): Promise<Tello> {
-    return this.sendCmd('emergency');
-  }
+  emergencyStop(): Promise<Tello> { return this.sendCmd('emergency'); }
+  takeoff(): Promise<Tello> { return this.sendCmd('takeoff'); }
+  land(): Promise<Tello> { return this.sendCmd('land'); }
 
-  /**
-   *
-   * @return {Promise<Tello>}
-   */
-  takeoff(): Promise<Tello> {
-    return this.sendCmd('takeoff');
-  }
-
-  /**
-   *
-   * @param {number} x1 in cm
-   * @param {number} y1 in cm
-   * @param {number} z1 in cm
-   * @param {number} x2 in cm
-   * @param {number} y2 in cm
-   * @param {number} z2 in cm
-   * @param {number} speed in cm/s
-   * @return {Promise<Tello>}
-   */
   curve(x1 = 20, y1 = 20, z1 = 20, x2 = 60, y2 = 40, z2 = 0, speed = 60): Promise<Tello> {
     return this.sendCmd(`curve ${x1} ${y1} ${z1} ${x2} ${y2} ${z2} ${speed} `);
   }
 
-  /**
-   *
-   * @param {number} distance in cm
-   * @return {Promise<Tello>}
-   */
-  forward(distance = 50): Promise<Tello> {
-    return this.sendCmd(`forward ${distance}`);
+  forward(distance = 50): Promise<Tello> { return this.sendCmd(`forward ${distance}`); }
+  backward(distance = 50): Promise<Tello> { return this.sendCmd(`back ${distance}`); }
+  left(distance = 50): Promise<Tello> { return this.sendCmd(`left ${distance}`); }
+  right(distance = 50): Promise<Tello> { return this.sendCmd(`right ${distance}`); }
+  up(height = 50): Promise<Tello> { return this.sendCmd(`up ${height}`); }
+  down(height = 50): Promise<Tello> { return this.sendCmd(`down ${height}`); }
+  speed(speed = 50): Promise<Tello> { return this.sendCmd(`speed ${speed}`); }
+  rotateCW(angle = 90): Promise<Tello> { return this.sendCmd(`cw ${angle}`); }
+  rotateCCW(angle = 90): Promise<Tello> { return this.sendCmd(`ccw ${angle}`); }
+  flip(orientation = 'f'): Promise<Tello> { return this.sendCmd(`flip ${orientation}`); }
+  flyTo(x = 50, y = 50, z = 0, speed = 100): Promise<Tello> {
+    return this.sendCmd(`go ${x} ${y} ${z} ${speed} `);
   }
 
-  /**
-   *
-   * @return {Promise<Tello>}
-   */
   start(): Promise<Tello> {
-    this.myEmitter.setMaxListeners(20);
+    this.emitter.setMaxListeners(20);
     return new Promise<Tello>(resolve => {
       this.UDPClient = createSocket('udp4');
-      if(this.hasTelemetry) {
+      if (this.hasTelemetry) {
         this.UDPServer = createSocket('udp4');
       }
-      this.UDPClient.bind(this.localPort, '0.0.0.0', () => {
+      this.UDPClient.bind(LOCAL_PORT, '0.0.0.0', () => {
         Logger.info('[Tello]', 'connected');
         this.sendCmd('command').then(() => resolve(this));
       });
-      process.on('SIGINT', async() => await this.stop());
+      process.on('SIGINT', () => this.stop());
       this.UDPClient.on('message', msg => {
-        if(msg.toString() === 'ok') {
-          Logger.info('[Tello]', 'Data received from server : ', msg.toString());
+        if (msg.toString() === 'ok') {
+          Logger.info('[Tello]', 'Data received from drone:', msg.toString());
         } else {
-          Logger.error('[Tello]', 'not ok', msg);
+          Logger.error('[Tello]', 'unexpected response', msg);
         }
-        this.myEmitter.emit('status');
+        this.emitter.emit('status');
       });
       this.listenState();
     });
   }
 
-  /**
-   *
-   * @param {number} distance in cm
-   * @return {Promise<Tello>}
-   */
-  right(distance = 50): Promise<Tello> {
-    return this.sendCmd(`right ${distance}`);
-  }
-
-  /**
-   *
-   * @param {number} height in cm
-   * @return {Promise<Tello>}
-   */
-  down(height = 50): Promise<Tello> {
-    return this.sendCmd(`down ${height}`);
-  }
-
-  /**
-   *
-   * @param {number} speed in cm/s
-   * @return {Promise<Tello>}
-   */
-  speed(speed = 50): Promise<Tello> {
-    return this.sendCmd(`speed ${speed}`);
-  }
-
-  /**
-   * Ends the process
-   */
   async stop() {
     this.UDPClient.close();
-    if(this.hasTelemetry) {
-      this.UDPServer.close();
-    }
-    if(this.tello_video) {
-      await this.tello_video.close();
-    }
-    if(this.h264encoder) {
-      await this.h264encoder.kill();
-    }
-    if(!this.isMock && this.hasTelemetry) {
-      await this.stopTelemetry();
-    }
-    Logger.info(new Date(), '[Tello]', 'Goodbye !');
+    if (this.hasTelemetry) this.UDPServer.close();
+    this.telloVideo?.close();
+    this.h264encoder?.kill();
+    if (!this.isMock && this.hasTelemetry) await this.stopTelemetry();
+    Logger.info('[Tello]', 'Goodbye!');
     process.exit(0);
-  }
-
-  /**
-   *
-   * @param {number} distance in cm
-   * @return {Promise<Tello>}
-   */
-  left(distance = 50): Promise<Tello> {
-    return this.sendCmd(`left ${distance}`);
-  }
-
-  /**
-   *
-   * @param {number} angle in degree
-   * @return {Promise<Tello>}
-   */
-  rotateCW(angle = 90): Promise<Tello> {
-    return this.sendCmd(`cw ${angle}`);
-  }
-
-  /**
-   *
-   * @return {Promise<Tello>}
-   */
-  land(): Promise<Tello> {
-    return this.sendCmd('land');
-  }
-
-  /**
-   *
-   * @param {number} distance in cm
-   * @return {Promise<Tello>}
-   */
-  backward(distance = 50): Promise<Tello> {
-    return this.sendCmd(`back ${distance}`);
-  }
-
-  /**
-   *
-   * @param {number} angle in degree
-   * @return {Promise<Tello>}
-   */
-  rotateCCW(angle = 90): Promise<Tello> {
-    return this.sendCmd(`ccw ${angle}`);
-  }
-
-  /**
-   *
-   * @param {number} height in cm
-   * @return {Promise<Tello>}
-   */
-  up(height = 50): Promise<Tello> {
-    return this.sendCmd(`up ${height}`);
-  }
-
-  /**
-   *
-   * @param {string} orientation values: f, b, l, r
-   * @return {Promise<Tello>}
-   */
-  flip(orientation = 'f'): Promise<Tello> {
-    return this.sendCmd(`flip ${orientation}`);
-  }
-
-  /**
-   *
-   * @param {number} x in cm
-   * @param {number} y in cm
-   * @param {number} z in cm
-   * @param {number} speed in cm/s
-   * @return {Promise<Tello>}
-   */
-  flyTo(x = 50, y = 50, z = 0, speed = 100): Promise<Tello> {
-    return this.sendCmd(`go ${x} ${y} ${z} ${speed} `);
   }
 }
