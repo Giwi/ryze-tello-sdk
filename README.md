@@ -3,13 +3,17 @@
 Node.js SDK for the [Ryze Tello Drone](https://www.ryzerobotics.com/tello).  
 Provides a fluent Promise-based API for drone commands, live telemetry, and video streaming.
 
+## Prerequisites
+
+Your computer must be **connected to the Tello's Wi-Fi network** (`TELLO-XXXXXX`). The drone creates its own access point - connect to it like any other Wi-Fi network.
+
 ## Install
 
 ```bash
 npm install @giwisoft/ryze-tello-sdk
 ```
 
-Connect your computer to the Tello's Wi-Fi network, then:
+Once connected to the Tello's Wi-Fi:
 
 ```typescript
 import { Tello } from '@giwisoft/ryze-tello-sdk';
@@ -43,12 +47,12 @@ This opens a live dashboard at `http://localhost:3000/telemetry.html` with chart
 
 ### Telemetry forwarders
 
-Optionally forward telemetry to external services:
+Optionally forward telemetry to external services. See the dedicated tutorials for setup:
 
-| Forwarder | Config | Description |
-|-----------|--------|-------------|
-| **Warp 10** | `{ withWarp10: true, warp10Params: { url, writeToken } }` | Time-series database ingest |
-| **MQTT** | `{ withMqtt: true, mqttParams: { url, clientId } }` | Publish to `ryze.tello` topic |
+| Forwarder | Config | Tutorial |
+|-----------|--------|----------|
+| **Warp 10** | `{ withWarp10: true, warp10Params: { url, writeToken } }` | [Warp 10 tutorial](tutorials/Warp10.md) |
+| **MQTT** | `{ withMqtt: true, mqttParams: { url, clientId } }` | [MQTT tutorial](tutorials/Mqtt.md) |
 
 ## Mock server
 
@@ -65,7 +69,7 @@ const tello = new Tello();
 tello.mock().start().then(() => tello.takeoff());
 ```
 
-The mock server echoes commands and responses over WebSocket — open `http://localhost:3000/mockServer.html` to watch the traffic.
+The mock server echoes commands and responses over WebSocket. Open `http://localhost:3000/mockServer.html` to watch the traffic.
 
 ## Video stream
 

@@ -10,5 +10,11 @@
   },
   "MockServer": {
     "title": "With a mock server"
+  },
+  "Mqtt": {
+    "title": "MQTT telemetry forwarding"
+  },
+  "Warp10": {
+    "title": "Warp 10 telemetry forwarding"
   }
 }
