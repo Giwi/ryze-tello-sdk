@@ -10,10 +10,11 @@
   },
   "scripts": {
     "build": "tsc -p . && esbuild src/www/js/vendor.js --bundle --minify --alias:moment=dayjs --outfile=dist/www/assets/vendor.js && cp src/www/*.html dist/www/",
-    "dev": "ts-node src/index.ts",
+    "dev": "tsx src/index.ts",
     "start": "npm run build && node dist/index.js",
-    "mock": "ts-node src/servers/mock_server.ts",
-    "doc": "npm run build && jsdoc dist -c .jsdoc.json"
+    "mock": "tsx src/servers/mock_server.ts",
+    "doc": "npm run build && jsdoc dist -c .jsdoc.json",
+    "test": "tsx --test test/*.ts"
   },
   "files": [
     "./dist/"
@@ -23,17 +24,19 @@
     "chart.js": "^2.9.4",
     "dayjs": "^1.11.21",
     "jquery": "^3.7.1",
-    "mqtt": "^4.2.6",
     "open": "^8.0.3",
     "popper.js": "^1.16.1",
     "websocket": "^1.0.33"
+  },
+  "optionalDependencies": {
+    "mqtt": "^4.2.6"
   },
   "devDependencies": {
     "@types/node": "^18.0.0",
     "@types/websocket": "^1.0.10",
     "esbuild": "^0.28.1",
     "jsdoc": "^4.0.5",
-    "ts-node": "^9.1.1",
+    "tsx": "^4.0.0",
     "typescript": "^5.4.0"
   }
 }
