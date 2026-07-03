@@ -1,21 +1,15 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2017",
     "module": "commonjs",
     "outDir": "dist",
-    "sourceMap": true
+    "sourceMap": true,
+    "skipLibCheck": true
   },
-  "files": [
-    "./node_modules/@types/node/index.d.ts"
-  ],
   "include": [
     "src/**/*.ts"
   ],
   "exclude": [
     "node_modules"
-  ],
-  "jsdoc": {
-    "out": "dist/doc",
-    "access": "public"
-  }
+  ]
 }

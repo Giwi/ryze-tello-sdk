@@ -36,7 +36,7 @@ export class Warp10 {
 
   /**
    *
-   * @param {{url: string; writeToken: string}} warp10Params
+   * @param {{url: string, writeToken: string}} warp10Params
    */
   constructor(warp10Params: { url: string; writeToken: string }) {
     this.warp10Params = warp10Params;
